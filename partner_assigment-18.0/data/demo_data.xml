@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    
+    <!-- Example demo data - can be removed in production -->
+    <!-- This file shows how to pre-configure partner-account relationships -->
+    
+    <!--
+    <record id="demo_receivable_account" model="account.account">
+        <field name="name">Demo Receivable Account</field>
+        <field name="code">DEMO_RECV</field>
+        <field name="account_type">asset_receivable</field>
+    </record>
+    
+    <record id="demo_payable_account" model="account.account">
+        <field name="name">Demo Payable Account</field>
+        <field name="code">DEMO_PAY</field>
+        <field name="account_type">liability_payable</field>
+    </record>
+    -->
+
+</odoo>
