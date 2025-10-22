@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_stock_quant_tree_inventory_editable_inherit_adj_account" model="ir.ui.view">
+            <field name="name">stock.quant.tree.inventory.editable.inherit.adj.account</field>
+            <field name="model">stock.quant</field>
+            <field name="inherit_id" ref="stock.view_stock_quant_tree_inventory_editable"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='inventory_diff_quantity']" position="after">
+                    <field name="x_adjustment_account_id"
+                           domain="[('account_type', 'in', ('expense', 'expense_depreciation', 'expense_direct_cost', 'income', 'income_other')), ('company_id', '=', company_id)]"
+                           options="{'no_create': True, 'no_create_edit': True}"
+                           optional="show"
+                           readonly="not inventory_quantity_set"
+                           />
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_stock_quant_form_inherit_adj_account" model="ir.ui.view">
+             <field name="name">stock.quant.form.inherit.adj.account</field>
+             <field name="model">stock.quant</field>
+             <field name="inherit_id" ref="stock.view_stock_quant_form"/>
+             <field name="arch" type="xml">
+                 <!-- Using a more generic approach targeting the first group -->
+                 <xpath expr="//group[1]" position="inside">
+                     <field name="x_adjustment_account_id"
+                            domain="[('account_type', 'in', ('expense', 'expense_depreciation', 'expense_direct_cost', 'income', 'income_other')), ('company_id', '=', company_id)]"
+                            options="{'no_create': True, 'no_create_edit': True}"
+                            />
+                 </xpath>
+             </field>
+        </record>
+    </data>
+</odoo>
