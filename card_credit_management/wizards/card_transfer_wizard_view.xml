@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Card Transfer Wizard Form View -->
+        <record id="view_card_transfer_wizard_form" model="ir.ui.view">
+            <field name="name">card.transfer.wizard.form</field>
+            <field name="model">card.transfer.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Credit Card Liquidity Transfer">
+                    <sheet>
+                        <group>
+                            <group name="journal_info" string="Source Information">
+                                <field name="journal_id" readonly="1"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group name="destination_info" string="Destination Information">
+                                <field name="final_bank_journal_id" 
+                                       options="{'no_create': True}"
+                                       required="1"/>
+                            </group>
+                        </group>
+                        
+                        <group>
+                            <group name="transfer_details" string="Transfer Details">
+                                <field name="transfer_amount" required="1"/>
+                                <field name="transfer_date" required="1"/>
+                                <field name="transfer_liquidity_account_id" 
+                                       options="{'no_create': True}"
+                                       required="1"/>
+                            </group>
+                            <group name="additional_info" string="Additional Information">
+                                <field name="reference"/>
+                            </group>
+                        </group>
+                        
+                        <group>
+                            <field name="notes" placeholder="Additional notes for the transfer..."/>
+                        </group>
+                        
+                        <div class="alert alert-info" role="alert">
+                            <strong>Note:</strong> This will create two accounting entries:
+                            <ul>
+                                <li>One to move funds from the credit card journal to the transfer account</li>
+                                <li>Another to move funds from the transfer account to the final bank journal</li>
+                            </ul>
+                            The credit card journal balance will become zero after this operation.
+                        </div>
+                    </sheet>
+                    
+                    <footer>
+                        <button name="action_create_transfer" 
+                                type="object" 
+                                string="Create Transfer" 
+                                class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Card Transfer Wizard Action -->
+        <record id="action_card_transfer_wizard" model="ir.actions.act_window">
+            <field name="name">Create Liquidity Transfer</field>
+            <field name="res_model">card.transfer.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="account.model_account_journal"/>
+            <field name="binding_view_types">form</field>
+        </record>
+
+    </data>
+</odoo>

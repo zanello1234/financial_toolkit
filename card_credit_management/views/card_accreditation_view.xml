@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Card Accreditation Tree View -->
+        <record id="view_card_accreditation_tree" model="ir.ui.view">
+            <field name="name">card.accreditation.list</field>
+            <field name="model">card.accreditation</field>
+            <field name="arch" type="xml">
+                <list string="Credit Card Accreditations" 
+                      decoration-info="state == 'pending'"
+                      decoration-success="state == 'credited'"
+                      decoration-muted="state == 'reconciled'"
+                      decoration-danger="state == 'reversed'"
+                      multi_edit="1">
+                    <field name="collection_date"/>
+                    <field name="movement_type"/>
+                    <field name="partner_id"/>
+                    <field name="journal_id"/>
+                    <field name="card_plan_id"/>
+                    <field name="batch_number"/>
+                    <field name="coupon_number"/>
+                    <field name="original_amount"/>
+                    <field name="fee"/>
+                    <field name="financial_cost"/>
+                    <field name="total_tax_deductions"/>
+                    <field name="estimated_liquidation_amount"/>
+                    <field name="estimated_accreditation_date"/>
+                    <field name="net_amount"/>
+                    <field name="actual_accreditation_date"/>
+                    <field name="actual_liquidation_amount"/>
+                    <field name="batch_transfer_id"/>
+                    <field name="state"/>
+                    <button name="action_create_batch_transfer" 
+                            type="object" 
+                            string="Create Batch Transfer" 
+                            icon="fa-exchange"
+                            invisible="state != 'pending'"/>
+                    <button name="action_add_to_batch" 
+                            type="object" 
+                            string="Credit &amp; Batch" 
+                            icon="fa-plus-square"
+                            invisible="state != 'pending' or batch_transfer_id"/>
+                    <button name="action_open_tax_deductions" 
+                            type="object" 
+                            string="Tax Deductions" 
+                            icon="fa-calculator"
+                            invisible="False"/>
+                    <button name="action_reset_to_pending" 
+                            type="object" 
+                            string="Reset to Pending" 
+                            icon="fa-undo"
+                            invisible="state == 'pending'"
+                            confirm="Are you sure you want to reset this accreditation to pending status?"/>
+                    <field name="currency_id" invisible="1"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Card Accreditation Form View -->
+        <record id="view_card_accreditation_form" model="ir.ui.view">
+            <field name="name">card.accreditation.form</field>
+            <field name="model">card.accreditation</field>
+            <field name="arch" type="xml">
+                <form string="Credit Card Accreditation">
+                    <header>
+                        <button name="action_create_batch_transfer" 
+                                type="object" 
+                                string="Create Batch Transfer" 
+                                class="btn-primary"
+                                invisible="state != 'pending' or batch_transfer_id"/>
+                        <button name="action_add_to_batch" 
+                                type="object" 
+                                string="Credit &amp; Batch" 
+                                class="btn-secondary"
+                                invisible="state != 'pending' or batch_transfer_id"/>
+                        <button name="action_reset_to_pending" 
+                                type="object" 
+                                string="Reset to Pending" 
+                                class="btn-warning"
+                                invisible="state == 'pending'"
+                                confirm="Are you sure you want to reset this accreditation to pending status? This will clear actual dates and amounts."/>
+                        <field name="state" widget="statusbar" 
+                               statusbar_visible="pending,credited,reconciled,reversed"/>
+                    </header>
+                    
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_open_payment" 
+                                    type="object" 
+                                    class="oe_stat_button" 
+                                    icon="fa-money">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Payment</span>
+                                </div>
+                            </button>
+                            <button name="%(action_card_fee_invoice_wizard)d" 
+                                    type="action" 
+                                    class="oe_stat_button" 
+                                    icon="fa-file-text-o"
+                                    context="{'active_ids': [id], 'active_model': 'card.accreditation'}">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Crear Fee &amp; Financial Cost Invoice</span>
+                                </div>
+                            </button>
+                            <button name="action_open_bank_statement_line" 
+                                    type="object" 
+                                    class="oe_stat_button" 
+                                    icon="fa-bank"
+                                    invisible="not bank_statement_line_id">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Bank Statement</span>
+                                </div>
+                            </button>
+                            <button name="action_open_related_moves" 
+                                    type="object" 
+                                    class="oe_stat_button" 
+                                    icon="fa-list-alt">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Related Entries</span>
+                                </div>
+                            </button>
+                            <button name="action_open_batch_transfer" 
+                                    type="object" 
+                                    class="oe_stat_button" 
+                                    icon="fa-exchange"
+                                    invisible="not batch_transfer_id">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Batch Transfer</span>
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <group>
+                            <group name="payment_info" string="Payment Information">
+                                <field name="payment_id" readonly="1"/>
+                                <field name="partner_id" readonly="1"/>
+                                <field name="movement_type"/>
+                                <field name="collection_date" readonly="1"/>
+                                <field name="original_amount" readonly="1"/>
+                                <field name="currency_id" readonly="1"/>
+                            </group>
+                            <group name="card_info" string="Credit Card Information">
+                                <field name="journal_id" readonly="1"/>
+                                <field name="card_plan_id" readonly="1"/>
+                                <field name="batch_number" readonly="1"/>
+                                <field name="coupon_number" readonly="1"/>
+                            </group>
+                        </group>
+                        
+                        <group>
+                            <group name="estimation_info" string="Estimation">
+                                <field name="estimated_accreditation_date" readonly="1"/>
+                                <field name="estimated_liquidation_amount" readonly="1"/>
+                                <label for="fee" string="Card Processing Fee"/>
+                                <div class="o_row">
+                                    <field name="fee" nolabel="1"/>
+                                    <button name="calculate_fee_from_plan" 
+                                            type="object" 
+                                            string="Auto-Calculate" 
+                                            class="btn-link"
+                                            title="Recalculate fee from card plan"
+                                            invisible="not card_plan_id"/>
+                                </div>
+                                <field name="financial_cost" string="Financial Cost (Installments)"/>
+                                <field name="total_tax_deductions" readonly="1"/>
+                                <field name="estimated_amount" readonly="1" class="oe_subtotal_footer_separator"/>
+                            </group>
+                            <group name="actual_info" string="Actual Information">
+                                <field name="actual_accreditation_date"/>
+                                <field name="actual_liquidation_amount"/>
+                                <field name="net_amount" readonly="1" class="oe_subtotal_footer_separator"/>
+                                <field name="bank_statement_line_id"/>
+                            </group>
+                        </group>
+                        
+                        <notebook>
+                            <page name="tax_deductions" string="Tax Deductions">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <button name="action_apply_tax_template" 
+                                                type="object" 
+                                                string="Apply Tax Template" 
+                                                class="btn-secondary"
+                                                invisible="state == 'reconciled'"/>
+                                        <button name="action_apply_all_tax_deductions" 
+                                                type="object" 
+                                                string="Apply All Confirmed Deductions" 
+                                                class="btn-primary"
+                                                invisible="state != 'credited'"/>
+                                    </div>
+                                </div>
+                                
+                                <field name="tax_deduction_ids" 
+                                       context="{'default_accreditation_id': id, 'default_base_amount': original_amount}">
+                                    <list editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name"/>
+                                        <field name="tax_account_id"/>
+                                        <field name="base_amount"/>
+                                        <field name="percentage"/>
+                                        <field name="amount"/>
+                                        <field name="state"/>
+                                        <field name="date_applied"/>
+                                        <button name="action_confirm" 
+                                                type="object" 
+                                                string="Confirm" 
+                                                icon="fa-check"
+                                                invisible="state != 'draft'"/>
+                                        <button name="action_post" 
+                                                type="object" 
+                                                string="Post" 
+                                                icon="fa-check-circle"
+                                                invisible="state != 'confirmed'"/>
+                                        <field name="currency_id" invisible="1"/>
+                                    </list>
+                                </field>
+                            </page>
+                            
+                            <page name="notes" string="Notes">
+                                <field name="notes" placeholder="Additional notes..."/>
+                            </page>
+                        </notebook>
+                        
+                        <div class="alert alert-info" role="alert">
+                            <strong>Note:</strong> Tax deductions are applied when the accreditation is credited.
+                            The final net amount reflects all applicable deductions.
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Card Accreditation Search View -->
+        <record id="view_card_accreditation_search" model="ir.ui.view">
+            <field name="name">card.accreditation.search</field>
+            <field name="model">card.accreditation</field>
+            <field name="arch" type="xml">
+                <search string="Credit Card Accreditations">
+                    <field name="partner_id"/>
+                    <field name="journal_id"/>
+                    <field name="batch_number"/>
+                    <field name="coupon_number"/>
+                    <field name="card_plan_id"/>
+                    
+                    <filter name="pending" string="Pending" domain="[('state', '=', 'pending')]"/>
+                    <filter name="credited" string="Credited" domain="[('state', '=', 'credited')]"/>
+                    <filter name="reconciled" string="Reconciled" domain="[('state', '=', 'reconciled')]"/>
+                    <filter name="reversed" string="Reversed" domain="[('state', '=', 'reversed')]"/>
+                    
+                    <separator/>
+                    <filter name="has_fee" string="Has Fee" domain="[('fee', '>', 0)]"/>
+                    <filter name="fee_not_invoiced" string="Fee Not Invoiced" domain="[('fee', '>', 0), ('fee_invoiced', '=', False)]"/>
+                    <filter name="fee_invoiced" string="Fee Invoiced" domain="[('fee_invoiced', '=', True)]"/>
+                    
+                    <separator/>
+                    <filter name="this_month" string="This Month" 
+                            domain="[('collection_date', '&gt;=', context_today().replace(day=1)), 
+                                     ('collection_date', '&lt;', (context_today().replace(day=1) + relativedelta(months=1)))]"/>
+                    <filter name="overdue" string="Overdue Accreditation" 
+                            domain="[('estimated_accreditation_date', '&lt;', context_today()), 
+                                     ('state', '=', 'pending')]"/>
+                    
+                    <group expand="0" string="Group By">
+                        <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                        <filter string="Journal" name="group_journal" context="{'group_by': 'journal_id'}"/>
+                        <filter string="Card Plan" name="group_plan" context="{'group_by': 'card_plan_id'}"/>
+                        <filter string="Customer" name="group_partner" context="{'group_by': 'partner_id'}"/>
+                        <filter string="Collection Date" name="group_collection_date" context="{'group_by': 'collection_date:month'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Card Accreditation Kanban View -->
+        <record id="view_card_accreditation_kanban" model="ir.ui.view">
+            <field name="name">card.accreditation.kanban</field>
+            <field name="model">card.accreditation</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="state" 
+                        class="o_kanban_small_column">
+                    <field name="state"/>
+                    <field name="partner_id"/>
+                    <field name="journal_id"/>
+                    <field name="original_amount"/>
+                    <field name="estimated_liquidation_amount"/>
+                    <field name="estimated_accreditation_date"/>
+                    <field name="batch_number"/>
+                    <field name="coupon_number"/>
+                    <field name="currency_id"/>
+                    
+                    <templates>
+                        <t t-name="card">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <div class="oe_kanban_content">
+                                    <div class="o_kanban_record_top">
+                                        <div class="o_kanban_record_headings">
+                                            <strong class="o_kanban_record_title">
+                                                <field name="partner_id"/>
+                                            </strong>
+                                            <small class="o_kanban_record_subtitle text-muted">
+                                                <field name="journal_id"/> - Lote <field name="batch_number"/>
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="o_kanban_record_body">
+                                        <div>
+                                            <strong>Original: </strong>
+                                            <field name="original_amount" widget="monetary"/>
+                                        </div>
+                                        <div>
+                                            <strong>Estimated: </strong>
+                                            <field name="estimated_liquidation_amount" widget="monetary"/>
+                                        </div>
+                                        <div>
+                                            <strong>Accreditation: </strong>
+                                            <field name="estimated_accreditation_date"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- Card Accreditation Action -->
+        <record id="action_card_accreditation" model="ir.actions.act_window">
+            <field name="name">Credit Card Accreditations</field>
+            <field name="res_model">card.accreditation</field>
+            <field name="view_mode">kanban,list,form</field>
+            <field name="views" eval="[(ref('view_card_accreditation_kanban'), 'kanban'), (ref('view_card_accreditation_tree'), 'list'), (False, 'form')]"/>
+            <field name="context">{'search_default_pending': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No credit card accreditations yet!
+                </p>
+                <p>
+                    Credit card accreditations are automatically created when 
+                    payments are posted with credit card journals.
+                </p>
+            </field>
+        </record>
+
+        <!-- Server Action for Bulk Batch Transfer Creation -->
+        <record id="action_bulk_create_batch_transfer" model="ir.actions.server">
+            <field name="name">Create Batch Transfer for Selected</field>
+            <field name="model_id" ref="model_card_accreditation"/>
+            <field name="binding_model_id" ref="model_card_accreditation"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">action = records.action_bulk_create_batch_transfer()</field>
+        </record>
+
+        <!-- Server Action for Bulk Tax Template Application -->
+        <record id="action_bulk_apply_tax_template" model="ir.actions.server">
+            <field name="name">Apply Tax Template to Selected</field>
+            <field name="model_id" ref="model_card_accreditation"/>
+            <field name="binding_model_id" ref="model_card_accreditation"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">action = records.action_bulk_apply_tax_template()</field>
+        </record>
+
+        <!-- Server Action for Bulk Reset to Pending -->
+        <record id="action_bulk_reset_to_pending" model="ir.actions.server">
+            <field name="name">Reset Selected to Pending</field>
+            <field name="model_id" ref="model_card_accreditation"/>
+            <field name="binding_model_id" ref="model_card_accreditation"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">action = records.action_reset_to_pending()</field>
+        </record>
+
+        <!-- Fee Invoice Wizard Action -->
+        <record id="action_create_fee_invoice_wizard" model="ir.actions.act_window">
+            <field name="name">Create Fee Invoice</field>
+            <field name="res_model">card.fee.invoice.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="context">{'active_model': 'card.accreditation'}</field>
+        </record>
+
+        <!-- Fee Analysis Tree View -->
+        <record id="view_card_accreditation_fee_tree" model="ir.ui.view">
+            <field name="name">card.accreditation.fee.list</field>
+            <field name="model">card.accreditation</field>
+            <field name="arch" type="xml">
+                <list string="Credit Card Fees Analysis" 
+                      decoration-info="state == 'pending'"
+                      decoration-success="state == 'credited'"
+                      decoration-muted="state == 'reconciled'"
+                      decoration-danger="state == 'reversed'"
+                      decoration-warning="fee_invoiced"
+                      create="false"
+                      edit="false"
+                      multi_edit="1">
+                    <header>
+                        <button name="%(action_card_fee_invoice_wizard)d" 
+                                type="action" 
+                                string="Crear Fee &amp; Financial Cost Invoice" 
+                                class="btn-primary"
+                                context="{'active_model': 'card.accreditation'}"/>
+                    </header>
+                    <field name="collection_date"/>
+                    <field name="partner_id"/>
+                    <field name="journal_id"/>
+                    <field name="card_plan_id"/>
+                    <field name="batch_number"/>
+                    <field name="coupon_number"/>
+                    <field name="original_amount" sum="Total Original"/>
+                    <field name="fee" sum="Total Fees"/>
+                    <field name="fee_invoiced"/>
+                    <field name="total_tax_deductions" sum="Total Tax Deductions"/>
+                    <field name="estimated_amount" sum="Total Estimated Net"/>
+                    <field name="net_amount" sum="Total Final Net"/>
+                    <field name="actual_accreditation_date"/>
+                    <field name="batch_transfer_id"/>
+                    <field name="state"/>
+                    <button name="action_open_related_moves" 
+                            type="object" 
+                            string="Related Entries" 
+                            icon="fa-file-text-o"
+                            help="Show all accounting entries related to this coupon"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Fee Analysis Action -->
+        <record id="action_card_accreditation_fee_analysis" model="ir.actions.act_window">
+            <field name="name">Credit Card Fees Analysis</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">card.accreditation</field>
+            <field name="view_mode">list</field>
+            <field name="view_id" ref="view_card_accreditation_fee_tree"/>
+            <field name="domain">[('fee', '>', 0)]</field>
+            <field name="context">{
+                'search_default_fee_not_invoiced': 1,
+                'search_default_group_journal': 1,
+                'search_default_group_plan': 1
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No fees found!
+                </p>
+                <p>
+                    This view shows all accreditations with fees debited.<br/>
+                    Fees are automatically calculated based on card plan configurations.
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

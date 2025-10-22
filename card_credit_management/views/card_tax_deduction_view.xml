@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Tax Deduction List View -->
+        <record id="view_card_tax_deduction_tree" model="ir.ui.view">
+            <field name="name">card.tax.deduction.list</field>
+            <field name="model">card.tax.deduction</field>
+            <field name="arch" type="xml">
+                <list string="Tax Deductions" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field name="tax_account_id"/>
+                    <field name="base_amount"/>
+                    <field name="percentage"/>
+                    <field name="amount"/>
+                    <field name="state"/>
+                    <field name="date_applied"/>
+                    <field name="applied"/>
+                    <field name="currency_id" invisible="1"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Tax Deduction Form View -->
+        <record id="view_card_tax_deduction_form" model="ir.ui.view">
+            <field name="name">card.tax.deduction.form</field>
+            <field name="model">card.tax.deduction</field>
+            <field name="arch" type="xml">
+                <form string="Tax Deduction">
+                    <header>
+                        <button name="action_confirm" 
+                                type="object" 
+                                string="Confirm" 
+                                class="btn-primary"
+                                invisible="state != 'draft'"/>
+                        <button name="action_post" 
+                                type="object" 
+                                string="Post" 
+                                class="btn-primary"
+                                invisible="state != 'confirmed'"/>
+                        <button name="action_cancel" 
+                                type="object" 
+                                string="Cancel" 
+                                class="btn-secondary"
+                                invisible="state == 'posted'"/>
+                        <field name="state" widget="statusbar" 
+                               statusbar_visible="draft,confirmed,posted"/>
+                    </header>
+                    
+                    <sheet>
+                        <group>
+                            <group name="basic_info">
+                                <field name="accreditation_id"/>
+                                <field name="name"/>
+                                <field name="sequence"/>
+                            </group>
+                            <group name="tax_info">
+                                <field name="tax_account_id"/>
+                                <field name="date_applied" readonly="state == 'posted'"/>
+                                <field name="applied" readonly="1"/>
+                            </group>
+                        </group>
+                        
+                        <group>
+                            <group name="calculation">
+                                <field name="base_amount"/>
+                                <field name="percentage"/>
+                                <field name="amount"/>
+                            </group>
+                            <group name="related_info">
+                                <field name="currency_id"/>
+                                <field name="company_id"/>
+                                <field name="move_line_id" readonly="1" invisible="not move_line_id"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Tax Deduction Search View -->
+        <record id="view_card_tax_deduction_search" model="ir.ui.view">
+            <field name="name">card.tax.deduction.search</field>
+            <field name="model">card.tax.deduction</field>
+            <field name="arch" type="xml">
+                <search string="Tax Deductions">
+                    <field name="name"/>
+                    <field name="accreditation_id"/>
+                    <field name="tax_account_id"/>
+                    <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                    <filter name="confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
+                    <filter name="posted" string="Posted" domain="[('state', '=', 'posted')]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_by_accreditation" string="Accreditation" context="{'group_by': 'accreditation_id'}"/>
+                        <filter name="group_by_tax_account" string="Tax Account" context="{'group_by': 'tax_account_id'}"/>
+                        <filter name="group_by_state" string="State" context="{'group_by': 'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Tax Deduction Action -->
+        <record id="action_card_tax_deduction" model="ir.actions.act_window">
+            <field name="name">Tax Deductions</field>
+            <field name="res_model">card.tax.deduction</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_card_tax_deduction_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first tax deduction
+                </p>
+                <p>
+                    Tax deductions are automatically applied to credit card accreditations
+                    when they are confirmed and posted.
+                </p>
+            </field>
+        </record>
+
+        <!-- Tax Deduction Template List View -->
+        <record id="view_card_tax_deduction_template_tree" model="ir.ui.view">
+            <field name="name">card.tax.deduction.template.list</field>
+            <field name="model">card.tax.deduction.template</field>
+            <field name="arch" type="xml">
+                <list string="Tax Deduction Templates">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field name="tax_line_ids" widget="many2many_tags"/>
+                    <field name="active"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Tax Deduction Template Form View -->
+        <record id="view_card_tax_deduction_template_form" model="ir.ui.view">
+            <field name="name">card.tax.deduction.template.form</field>
+            <field name="model">card.tax.deduction.template</field>
+            <field name="arch" type="xml">
+                <form string="Tax Deduction Template">
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="toggle_active" type="object" 
+                                    class="oe_stat_button" icon="fa-archive"
+                                    invisible="active">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Archived</span>
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <group>
+                            <group name="basic_info">
+                                <field name="active" invisible="1"/>
+                                <field name="name"/>
+                                <field name="sequence"/>
+                                <field name="company_id"/>
+                            </group>
+                        </group>
+                        
+                        <notebook>
+                            <page name="tax_lines" string="Tax Lines">
+                                <field name="tax_line_ids">
+                                    <list editable="bottom">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name"/>
+                                        <field name="tax_account_id"/>
+                                        <field name="percentage"/>
+                                        <field name="description"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page name="description" string="Description">
+                                <field name="description" nolabel="1" placeholder="Description of this tax deduction template..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Tax Deduction Template Line List View -->
+        <record id="view_card_tax_deduction_template_line_tree" model="ir.ui.view">
+            <field name="name">card.tax.deduction.template.line.list</field>
+            <field name="model">card.tax.deduction.template.line</field>
+            <field name="arch" type="xml">
+                <list string="Tax Lines" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field name="tax_account_id"/>
+                    <field name="percentage"/>
+                    <field name="description"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Tax Deduction Template Line Form View -->
+        <record id="view_card_tax_deduction_template_line_form" model="ir.ui.view">
+            <field name="name">card.tax.deduction.template.line.form</field>
+            <field name="model">card.tax.deduction.template.line</field>
+            <field name="arch" type="xml">
+                <form string="Tax Line">
+                    <sheet>
+                        <group>
+                            <group name="basic_info">
+                                <field name="name"/>
+                                <field name="sequence"/>
+                            </group>
+                            <group name="tax_info">
+                                <field name="tax_account_id"/>
+                                <field name="percentage"/>
+                            </group>
+                        </group>
+                        
+                        <group name="description">
+                            <field name="description" nolabel="1" placeholder="Description of this tax line..."/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Tax Deduction Template Action -->
+        <record id="action_card_tax_deduction_template" model="ir.actions.act_window">
+            <field name="name">Tax Deduction Templates</field>
+            <field name="res_model">card.tax.deduction.template</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first tax deduction template
+                </p>
+                <p>
+                    Templates allow you to quickly create common tax deductions
+                    for credit card accreditations.
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

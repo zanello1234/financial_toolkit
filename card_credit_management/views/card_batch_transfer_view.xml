@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Card Batch Transfer List View -->
+        <record id="view_card_batch_transfer_tree" model="ir.ui.view">
+            <field name="name">card.batch.transfer.list</field>
+            <field name="model">card.batch.transfer</field>
+            <field name="arch" type="xml">
+                <list string="Batch Transfers">
+                    <field name="name"/>
+                    <field name="transfer_date"/>
+                    <field name="source_journal_id"/>
+                    <field name="destination_journal_id"/>
+                    <field name="total_amount"/>
+                    <field name="inbound_payment_state" optional="show"/>
+                    <field name="state" widget="badge" decoration-success="state == 'transferred'" decoration-info="state == 'confirmed'" decoration-muted="state == 'cancelled'"/>
+                    <field name="currency_id" invisible="1"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Card Batch Transfer Form View -->
+        <record id="view_card_batch_transfer_form" model="ir.ui.view">
+            <field name="name">card.batch.transfer.form</field>
+            <field name="model">card.batch.transfer</field>
+            <field name="arch" type="xml">
+                <form string="Batch Transfer">
+                    <header>
+                        <button name="action_confirm" type="object" string="Confirm" 
+                                class="btn-primary" invisible="state != 'draft'"/>
+                        <button name="action_transfer" type="object" string="Execute Transfer" 
+                                class="btn-primary" invisible="state != 'confirmed'"/>
+                        <button name="action_back_to_draft" type="object" string="Back to Draft" 
+                                class="btn-warning" invisible="state != 'transferred'"
+                                confirm="This will allow adding more accreditations. Are you sure?"/>
+                        <button name="action_check_reconciliation_status" type="object" string="Check Reconciliation Status" 
+                                class="btn-secondary" invisible="state not in ('transferred', 'reconciled')"/>
+                        <button name="action_cancel" type="object" string="Cancel" 
+                                class="btn-secondary" invisible="state in ('transferred', 'reconciled', 'cancelled')"/>
+                        <button name="action_set_to_draft" type="object" string="Set to Draft" 
+                                class="btn-secondary" invisible="state not in ('confirmed', 'cancelled')"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,transferred,reconciled"/>
+                    </header>
+                    
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_journal_entry" type="object" 
+                                    class="oe_stat_button" icon="fa-book"
+                                    invisible="not move_id">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Journal Entry</span>
+                                </div>
+                            </button>
+                            <button name="action_view_outbound_payment" type="object" 
+                                    class="oe_stat_button" icon="fa-arrow-left"
+                                    invisible="not outbound_payment_id">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Outbound Payment</span>
+                                </div>
+                            </button>
+                            <button name="action_view_inbound_payment" type="object" 
+                                    class="oe_stat_button" icon="fa-arrow-right"
+                                    invisible="not inbound_payment_id">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">Inbound Payment</span>
+                                </div>
+                            </button>
+                            <button name="action_view_payments" type="object" 
+                                    class="oe_stat_button" icon="fa-exchange"
+                                    invisible="not outbound_payment_id and not inbound_payment_id">
+                                <div class="o_stat_info">
+                                    <span class="o_stat_text">View All Payments</span>
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <group>
+                            <group name="transfer_info">
+                                <field name="name"/>
+                                <field name="transfer_date"/>
+                                <field name="is_payment_reconciled" string="Payment Reconciled" readonly="1"/>
+                                <field name="company_id" invisible="1"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group name="journals">
+                                <field name="source_journal_id"/>
+                                <field name="destination_journal_id"/>
+                                <field name="total_amount"/>
+                            </group>
+                        </group>
+                        
+                        <group name="deductions_group" string="Global Deductions">
+                            <group name="global_deductions">
+                                <field name="global_fee"/>
+                                <field name="global_tax_deductions"/>
+                            </group>
+                            <group name="final_amounts">
+                                <field name="final_transfer_amount" class="oe_subtotal_footer_separator"/>
+                            </group>
+                        </group>
+                        
+                        <notebook>
+                            <page name="accreditations" string="Included Accreditations">
+                                <field name="accreditation_ids">
+                                    <list>
+                                        <field name="partner_id"/>
+                                        <field name="batch_number"/>
+                                        <field name="coupon_number"/>
+                                        <field name="collection_date"/>
+                                        <field name="original_amount"/>
+                                        <field name="net_amount"/>
+                                        <field name="state"/>
+                                        <button name="action_remove_from_batch" 
+                                                type="object" 
+                                                string="Remove from Batch" 
+                                                icon="fa-unlink"
+                                                invisible="parent.state != 'draft'"
+                                                confirm="Are you sure you want to remove this accreditation from the batch transfer? It will return to pending state."/>
+                                        <button name="action_reverse_coupon" 
+                                                type="object" 
+                                                string="Reverse Coupon" 
+                                                icon="fa-undo"
+                                                invisible="state not in ('credited', 'reconciled') or original_amount &lt; 0"
+                                                confirm="Are you sure you want to reverse this coupon? This will create a negative entry to offset the original transaction."/>
+                                    </list>
+                                </field>
+                                
+                                <div class="mt16">
+                                    <button name="action_add_accreditations" 
+                                            type="object" 
+                                            string="Add More Accreditations" 
+                                            class="btn-primary"
+                                            icon="fa-plus"
+                                            invisible="state != 'draft'"/>
+                                </div>
+                                
+                                <div class="alert alert-info mt16" role="alert" invisible="state == 'draft'">
+                                    <p>
+                                        <strong>Note:</strong> Accreditations can only be added to batch transfers in 'draft' state.
+                                        <span invisible="state not in ('transferred', 'reconciled')">
+                                            Use the 'Back to Draft' button in the header if you need to modify this batch transfer.
+                                        </span>
+                                    </p>
+                                </div>
+                                
+                                <div class="mt16" invisible="not accreditation_ids">
+                                    <group>
+                                        <field name="accreditation_count" string="Total Accreditations"/>
+                                        <field name="total_amount" string="Total Amount"/>
+                                    </group>
+                                </div>
+                            </page>
+                            
+                            <page name="accounting" string="Accounting" invisible="not move_id">
+                                <group>
+                                    <group name="payments_info" string="Transfer Payments">
+                                        <field name="outbound_payment_id" readonly="1" invisible="not outbound_payment_id"/>
+                                        <field name="inbound_payment_id" readonly="1" invisible="not inbound_payment_id"/>
+                                        <field name="inbound_payment_state" invisible="not inbound_payment_id"/>
+                                        <button name="action_sync_payment_state" type="object" 
+                                                string="Sync Payment State" 
+                                                class="btn-secondary"
+                                                invisible="not inbound_payment_id"/>
+                                        <field name="destination_account_id" readonly="1" invisible="not destination_account_id"/>
+                                    </group>
+                                    <group name="journal_entry" string="Journal Entry">
+                                        <field name="move_id" readonly="1"/>
+                                    </group>
+                                </group>
+                            </page>
+                            
+                            <page name="notes" string="Notes">
+                                <field name="notes" nolabel="1" placeholder="Transfer notes and observations..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Card Batch Transfer Action -->
+        <record id="action_card_batch_transfer" model="ir.actions.act_window">
+            <field name="name">Batch Transfers</field>
+            <field name="res_model">card.batch.transfer</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create your first batch transfer
+                </p>
+                <p>
+                    Batch transfers allow you to group multiple credit card accreditations
+                    and transfer them to the destination bank in a single operation.
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

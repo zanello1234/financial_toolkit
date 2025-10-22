@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Search view for card payments -->
+        <record id="view_account_payment_search_inherit_card" model="ir.ui.view">
+            <field name="name">account.payment.search.card</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@name='draft']" position="after">
+                    <filter string="Card Payments" 
+                            name="card_payments" 
+                            domain="[('card_batch_number', '!=', False)]"/>
+                </xpath>
+                <xpath expr="//field[@name='partner_id']" position="after">
+                    <field name="card_batch_number"/>
+                    <field name="card_coupon_number"/>
+                    <field name="card_plan_id"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Card Surcharge Wizard Form View -->
+        <record id="view_card_surcharge_wizard_form" model="ir.ui.view">
+            <field name="name">card.surcharge.wizard.form</field>
+            <field name="model">card.surcharge.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Calculate Credit Card Surcharge">
+                    <sheet>
+                        <group>
+                            <group name="order_info" string="Order Information">
+                                <field name="sale_order_id" readonly="1"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group name="plan_selection" string="Credit Card Plan">
+                                <field name="card_plan_id" 
+                                       options="{'no_create': True}"
+                                       required="1"/>
+                            </group>
+                        </group>
+                        
+                        <group name="calculation_results" 
+                               string="Calculation Results"
+                               invisible="not card_plan_id">
+                            <group>
+                                <field name="base_amount" readonly="1"/>
+                                <field name="surcharge_amount" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="total_amount" readonly="1" 
+                                       class="oe_subtotal_footer_separator"/>
+                            </group>
+                        </group>
+                        
+                        <div class="alert alert-info" role="alert"
+                             invisible="not card_plan_id">
+                            <strong>Note:</strong> The surcharge will be added as a separate line 
+                            to the sale order using the configured financial cost account.
+                        </div>
+                    </sheet>
+                    
+                    <footer>
+                        <button name="action_apply_surcharge" 
+                                type="object" 
+                                string="Apply Surcharge" 
+                                class="btn-primary"
+                                invisible="not card_plan_id"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Card Surcharge Wizard Action -->
+        <record id="action_card_surcharge_wizard" model="ir.actions.act_window">
+            <field name="name">Calculate Credit Card Surcharge</field>
+            <field name="res_model">card.surcharge.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="binding_model_id" ref="sale.model_sale_order"/>
+            <field name="binding_view_types">form</field>
+        </record>
+
+    </data>
+</odoo>

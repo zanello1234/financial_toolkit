@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Main Credit Card Management Menu (Independent under Accounting) -->
+        <record id="menu_credit_card_main" model="ir.ui.menu">
+            <field name="name">Credit Cards</field>
+            <field name="parent_id" eval="153"/>
+            <field name="sequence">95</field>
+        </record>
+
+        <!-- Accreditations Submenu -->
+        <menuitem id="menu_card_accreditation"
+                  name="Accreditations"
+                  parent="menu_credit_card_main"
+                  action="action_card_accreditation"
+                  sequence="10"/>
+
+        <!-- Tax Deductions Submenu -->
+        <menuitem id="menu_tax_deduction"
+                  name="Tax Deductions"
+                  parent="menu_credit_card_main"
+                  action="action_card_tax_deduction"
+                  sequence="20"/>
+
+        <!-- Card Reconciliation Submenu -->
+        <menuitem id="menu_card_reconciliation"
+                  name="Card Reconciliation"
+                  parent="menu_credit_card_main"
+                  action="action_card_quick_reconciliation"
+                  sequence="25"/>
+
+        <!-- Batch Transfers Submenu -->
+        <menuitem id="menu_batch_transfer"
+                  name="Batch Transfers"
+                  parent="menu_credit_card_main"
+                  action="action_card_batch_transfer"
+                  sequence="30"/>
+
+        <!-- Reports Submenu -->
+        <menuitem id="menu_credit_card_reports"
+                  name="Reports"
+                  parent="menu_credit_card_main"
+                  sequence="40"/>
+
+        <!-- Fee Analysis Report -->
+        <menuitem id="menu_card_accreditation_fee_analysis"
+                  name="Fee Analysis"
+                  parent="menu_credit_card_reports"
+                  action="action_card_accreditation_fee_analysis"
+                  sequence="10"/>
+
+        <!-- Configuration Section -->
+        <menuitem id="menu_card_configuration"
+                  name="Credit Card Configuration"
+                  parent="account.menu_finance_configuration"
+                  sequence="80"/>
+
+        <!-- Credit Card Plans -->
+        <menuitem id="menu_card_plan"
+                  name="Card Plans"
+                  parent="menu_card_configuration"
+                  action="action_card_plan"
+                  sequence="10"/>
+
+        <!-- Tax Deduction Templates -->
+        <menuitem id="menu_tax_deduction_template"
+                  name="Tax Deduction Templates"
+                  parent="menu_card_configuration"
+                  action="action_card_tax_deduction_template"
+                  sequence="20"/>
+
+        <!-- Holidays -->
+        <menuitem id="menu_holiday"
+                  name="Holidays"
+                  parent="menu_card_configuration"
+                  action="action_holiday"
+                  sequence="30"/>
+
+    </data>
+</odoo>

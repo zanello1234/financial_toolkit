@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Credit Card Management Pro</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin: 0;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.3em;
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 15px 0;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #2a5298;
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .feature-card h3 {
+            color: #2a5298;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        .benefit-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .benefit-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .benefit-list li:before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+        }
+        
+        .pricing-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .price {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+        
+        .cta-button:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+        }
+        
+        .workflow-diagram {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        
+        .workflow-step {
+            display: inline-block;
+            background: white;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💳 Credit Card Management Pro</h1>
+            <p>Transform Your Credit Card Processing with Professional Automation</p>
+            <div class="badge">🏆 Complete Business Solution</div>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>🚀 Revolutionary Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3>Smart Card Plans</h3>
+                        <p>Configure multiple credit card processors with automated fee calculations, accreditation terms, and intelligent routing.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Automated Surcharges</h3>
+                        <p>Dynamic surcharge calculation for sales orders based on payment method, reducing manual work by 90%.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🔄</div>
+                        <h3>Batch Processing</h3>
+                        <p>Streamlined batch transfers with automatic reconciliation when bank payments are processed.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Fee Management</h3>
+                        <p>Generate vendor invoices for processing fees with complete traceability and multi-selection capabilities.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">💰</div>
+                        <h3>Cash Flow Tracking</h3>
+                        <p>Real-time tracking of expected vs actual credit card deposits with intelligent date predictions.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">📈</div>
+                        <h3>Advanced Analytics</h3>
+                        <p>Comprehensive reporting and analytics for credit card operations with exportable data.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>💼 Business Benefits</h2>
+                <ul class="benefit-list">
+                    <li><strong>Reduce Manual Work:</strong> Automate 90% of credit card accounting processes</li>
+                    <li><strong>Improve Cash Flow:</strong> Accurate prediction of credit card deposits and fees</li>
+                    <li><strong>Better Financial Control:</strong> Complete visibility into processing fees and deductions</li>
+                    <li><strong>Compliance Ready:</strong> Built-in tax deduction management for regulatory compliance</li>
+                    <li><strong>Scalable Solution:</strong> Handle high-volume credit card transactions efficiently</li>
+                    <li><strong>Multi-Currency Support:</strong> Handle international transactions with ease</li>
+                    <li><strong>Real-time Reconciliation:</strong> Automatic state updates when bank reconciles payments</li>
+                    <li><strong>Professional Reporting:</strong> Generate detailed fee analysis and transaction reports</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>🔧 How It Works</h2>
+                <div class="workflow-diagram">
+                    <div class="workflow-step">
+                        <div class="step-number">1</div>
+                        <h4>Setup Plans</h4>
+                        <p>Configure credit card processors and fee structures</p>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">2</div>
+                        <h4>Process Sales</h4>
+                        <p>Automatic surcharge calculation on sales orders</p>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">3</div>
+                        <h4>Track Payments</h4>
+                        <p>Monitor accreditations and expected deposits</p>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">4</div>
+                        <h4>Batch Transfer</h4>
+                        <p>Process settlements in organized batches</p>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="step-number">5</div>
+                        <h4>Auto Reconcile</h4>
+                        <p>Automatic reconciliation when bank processes</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pricing-box">
+                <h2>💎 Professional Investment</h2>
+                <div class="price">$150 USD</div>
+                <p>One-time purchase • Lifetime updates • Professional support</p>
+                <a href="#" class="cta-button">Get Started Today 🚀</a>
+                <p><small>30-day money-back guarantee • Instant download • No monthly fees</small></p>
+            </div>
+            
+            <div class="section">
+                <h2>🎯 Perfect For</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🏪</div>
+                        <h3>Retail Businesses</h3>
+                        <p>High-volume credit card transactions with multiple payment processors</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🛒</div>
+                        <h3>E-commerce</h3>
+                        <p>Online stores processing multiple payment methods and currencies</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🍽️</div>
+                        <h3>Restaurants</h3>
+                        <p>Hospitality businesses with complex fee structures and tip management</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">💼</div>
+                        <h3>Professional Services</h3>
+                        <p>Service firms requiring detailed credit card accounting and reporting</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🏆 Why Choose Credit Card Management Pro?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Lightning Fast Setup</h3>
+                        <p>Get up and running in minutes with our intuitive configuration wizard</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Enterprise Security</h3>
+                        <p>Bank-grade security with complete audit trails and compliance features</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">📱</div>
+                        <h3>Mobile Ready</h3>
+                        <p>Access your credit card data anywhere with responsive mobile interface</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🔧</div>
+                        <h3>Expert Support</h3>
+                        <p>Professional implementation support and ongoing technical assistance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

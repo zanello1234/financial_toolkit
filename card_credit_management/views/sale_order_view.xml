@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Sale Order Form View Extension -->
+        <record id="view_order_form_card_surcharge" model="ir.ui.view">
+            <field name="name">sale.order.form.card.surcharge</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                
+                <!-- Add card plan field after payment term -->
+                <field name="payment_term_id" position="after">
+                    <field name="card_plan_id" 
+                           options="{'no_create': True}"
+                           readonly="state != 'draft'"/>
+                </field>
+
+                <!-- Add surcharge information group -->
+                <xpath expr="//group[@name='sale_total']" position="before">
+                    <group name="card_surcharge_info" 
+                           invisible="not card_plan_id" 
+                           string="Credit Card Information">
+                        <group>
+                            <field name="card_base_amount" readonly="1"/>
+                            <field name="card_surcharge_amount" readonly="1"/>
+                            <field name="card_surcharge_calculated" invisible="1"/>
+                            <field name="card_surcharge_needs_recalculation" invisible="1"/>
+                            <field name="show_calculate_surcharge_button" invisible="1"/>
+                        </group>
+                    </group>
+                </xpath>
+
+                <!-- Add calculate surcharge button -->
+                <button name="action_confirm" position="before">
+                    <button name="action_calculate_card_surcharge" 
+                            type="object" 
+                            string="Calculate Surcharge" 
+                            class="btn-primary"
+                            invisible="not show_calculate_surcharge_button"
+                            icon="fa-calculator"/>
+                </button>
+
+            </field>
+        </record>
+
+        <!-- Sale Order Line Tree View Extension - Temporarily disabled for Odoo 18 compatibility -->
+        <!--
+        <record id="view_order_line_tree_card_surcharge" model="ir.ui.view">
+            <field name="name">sale.order.line.list.card.surcharge</field>
+            <field name="model">sale.order.line</field>
+            <field name="inherit_id" ref="sale.view_order_line_tree"/>
+            <field name="arch" type="xml">
+                <field name="price_subtotal" position="after">
+                    <field name="is_card_surcharge" optional="hide"/>
+                </field>
+            </field>
+        </record>
+        -->
+
+    </data>
+</odoo>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Card Reconciliation List View - Standalone view for compatibility -->
+        <record id="view_card_reconciliation_list" model="ir.ui.view">
+            <field name="name">account.bank.statement.line.list.card</field>
+            <field name="model">account.bank.statement.line</field>
+            <field name="arch" type="xml">
+                <list string="Bank Statement Lines" 
+                      sample="1" 
+                      decoration-info="state == 'draft'" 
+                      decoration-muted="state == 'cancel'">
+                    <field name="date"/>
+                    <field name="payment_ref" optional="show"/>
+                    <field name="partner_id" optional="show"/>
+                    <field name="amount" sum="Total"/>
+                    <field name="card_batch_search" string="Batch Info" optional="show"/>
+                    <field name="currency_id" column_invisible="True"/>
+                    <field name="journal_id" optional="hide"/>
+                    <field name="state" optional="hide"/>
+                    <button name="action_reconcile_with_accreditation" 
+                            type="object" 
+                            string="Find Accreditation" 
+                            icon="fa-search"
+                            invisible="not journal_id or not journal_id.is_credit_card"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Quick Reconciliation Action for Credit Cards -->
+        <record id="action_card_quick_reconciliation" model="ir.actions.act_window">
+            <field name="name">Quick Credit Card Reconciliation</field>
+            <field name="res_model">account.bank.statement.line</field>
+            <field name="view_mode">list,form</field>
+            <field name="view_id" ref="view_card_reconciliation_list"/>
+            <field name="views" eval="[(ref('view_card_reconciliation_list'), 'list'), (False, 'form')]"/>
+            <field name="domain">[('journal_id.is_credit_card', '=', True), ('is_reconciled', '=', False)]</field>
+            <field name="context">{
+                'search_default_unreconciled': 1,
+                'quick_reconcile_mode': True
+            }</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No unreconciled credit card transactions!
+                </p>
+                <p>
+                    Import your credit card statements and use this view 
+                    for quick reconciliation using batch numbers.
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

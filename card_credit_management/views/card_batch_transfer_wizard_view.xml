@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Card Batch Transfer Wizard Form View -->
+        <record id="view_card_batch_transfer_wizard_form" model="ir.ui.view">
+            <field name="name">card.batch.transfer.wizard.form</field>
+            <field name="model">card.batch.transfer.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Create Batch Transfer">
+                    <sheet>
+                        <group>
+                            <group name="transfer_info">
+                                <field name="transfer_date"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group name="journals">
+                                <field name="source_journal_id"/>
+                                <field name="destination_journal_id"/>
+                                <field name="total_amount"/>
+                            </group>
+                        </group>
+                        
+                        <notebook>
+                            <page name="accreditations" string="Accreditations to Include">
+                                <field name="accreditation_ids">
+                                    <list>
+                                        <field name="partner_id"/>
+                                        <field name="batch_number"/>
+                                        <field name="coupon_number"/>
+                                        <field name="collection_date"/>
+                                        <field name="original_amount"/>
+                                        <field name="estimated_liquidation_amount"/>
+                                        <field name="net_amount"/>
+                                    </list>
+                                </field>
+                                
+                                <div class="alert alert-info mt16" role="alert" invisible="not accreditation_ids">
+                                    <group>
+                                        <field name="accreditation_count" string="Accreditations selected"/>
+                                        <field name="total_amount" string="Total amount"/>
+                                    </group>
+                                </div>
+                                
+                                <div class="alert alert-warning mt16" role="alert" invisible="accreditation_ids">
+                                    <p><strong>Please select at least one accreditation to include in the batch transfer.</strong></p>
+                                </div>
+                            </page>
+                            
+                            <page name="notes" string="Transfer Notes">
+                                <field name="notes" nolabel="1" placeholder="Add notes about this batch transfer..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    
+                    <footer>
+                        <button name="action_create_batch_transfer" 
+                                type="object" 
+                                string="Create Batch Transfer" 
+                                class="btn-primary"
+                                invisible="not accreditation_ids"/>
+                        <button string="Cancel" 
+                                class="btn-secondary" 
+                                special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

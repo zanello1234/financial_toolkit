@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Account Journal Form View Extension -->
+        <record id="view_account_journal_form_card" model="ir.ui.view">
+            <field name="name">account.journal.form.card</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_form"/>
+            <field name="arch" type="xml">
+                
+                <!-- Add credit card configuration before notebook -->
+                <xpath expr="//notebook" position="before">
+                    <group name="credit_card_config" 
+                           invisible="type != 'bank'"
+                           string="Credit Card Configuration">
+                        <group>
+                            <field name="is_credit_card"/>
+                        </group>
+                        <group>
+                            <field name="transfer_liquidity_account_id" 
+                                   invisible="not is_credit_card"/>
+                            <field name="final_bank_journal_id" 
+                                   invisible="not is_credit_card"/>
+                        </group>
+                    </group>
+                </xpath>
+
+                <!-- Add credit card plans notebook page -->
+                <xpath expr="//notebook" position="inside">
+                    <page name="card_plans" string="Credit Card Plans" 
+                          invisible="not is_credit_card">
+                        <field name="card_plan_ids" 
+                               context="{'default_journal_id': id}">
+                            <list editable="bottom">
+                                <field name="name"/>
+                                <field name="accreditation_days"/>
+                                <field name="fee_percentage"/>
+                                <field name="financial_cost_percentage"/>
+                                <field name="surcharge_coefficient"/>
+                                <field name="rounding_factor"/>
+                                <field name="active"/>
+                            </list>
+                        </field>
+                        
+                        <div class="mt16">
+                            <button name="create_default_reconcile_models" 
+                                    type="object" 
+                                    string="Create Default Reconciliation Models" 
+                                    class="btn-secondary"
+                                    invisible="not is_credit_card"/>
+                            <button name="action_open_reconcile_model_config" 
+                                    type="object" 
+                                    string="Configure Reconciliation Models" 
+                                    class="btn-secondary"
+                                    invisible="not is_credit_card"/>
+                        </div>
+                    </page>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

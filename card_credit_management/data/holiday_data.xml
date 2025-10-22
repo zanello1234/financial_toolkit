@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Sample Holidays for Argentina -->
+        <record id="holiday_new_year" model="card.holiday">
+            <field name="name">Año Nuevo</field>
+            <field name="date">2025-01-01</field>
+            <field name="recurring">True</field>
+        </record>
+
+        <record id="holiday_carnival_monday" model="card.holiday">
+            <field name="name">Lunes de Carnaval</field>
+            <field name="date">2025-03-03</field>
+            <field name="recurring">False</field>
+        </record>
+
+        <record id="holiday_carnival_tuesday" model="card.holiday">
+            <field name="name">Martes de Carnaval</field>
+            <field name="date">2025-03-04</field>
+            <field name="recurring">False</field>
+        </record>
+
+        <record id="holiday_malvinas" model="card.holiday">
+            <field name="name">Día del Veterano y de los Caídos en la Guerra de Malvinas</field>
+            <field name="date">2025-04-02</field>
+            <field name="recurring">True</field>
+        </record>
+
+        <record id="holiday_good_friday" model="card.holiday">
+            <field name="name">Viernes Santo</field>
+            <field name="date">2025-04-18</field>
+            <field name="recurring">False</field>
+        </record>
+
+        <record id="holiday_labour_day" model="card.holiday">
+            <field name="name">Día del Trabajador</field>
+            <field name="date">2025-05-01</field>
+            <field name="recurring">True</field>
+        </record>
+
+        <record id="holiday_may_revolution" model="card.holiday">
+            <field name="name">Día de la Revolución de Mayo</field>
+            <field name="date">2025-05-25</field>
+            <field name="recurring">True</field>
+        </record>
+
+        <record id="holiday_belgrano" model="card.holiday">
+            <field name="name">Paso a la Inmortalidad del General Manuel Belgrano</field>
+            <field name="date">2025-06-20</field>
+            <field name="recurring">True</field>
+        </record>
+
+        <record id="holiday_independence" model="card.holiday">
+            <field name="name">Día de la Independencia</field>
+            <field name="date">2025-07-09</field>
+            <field name="recurring">True</field>
+        </record>
+
+        <record id="holiday_san_martin" model="card.holiday">
+            <field name="name">Paso a la Inmortalidad del General José de San Martín</field>
+            <field name="date">2025-08-17</field>
+            <field name="recurring">True</field>
+        </record>
+
+        <record id="holiday_columbus_day" model="card.holiday">
+            <field name="name">Día del Respeto a la Diversidad Cultural</field>
+            <field name="date">2025-10-12</field>
+            <field name="recurring">True</field>
+        </record>
+
+        <record id="holiday_sovereignty" model="card.holiday">
+            <field name="name">Día de la Soberanía Nacional</field>
+            <field name="date">2025-11-20</field>
+            <field name="recurring">True</field>
+        </record>
+
+        <record id="holiday_immaculate_conception" model="card.holiday">
+            <field name="name">Inmaculada Concepción de María</field>
+            <field name="date">2025-12-08</field>
+            <field name="recurring">True</field>
+        </record>
+
+        <record id="holiday_christmas" model="card.holiday">
+            <field name="name">Navidad</field>
+            <field name="date">2025-12-25</field>
+            <field name="recurring">True</field>
+        </record>
+
+    </data>
+</odoo>

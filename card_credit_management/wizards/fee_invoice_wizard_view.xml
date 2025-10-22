@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Fee Invoice Wizard Form View -->
+    <record id="view_fee_invoice_wizard_form" model="ir.ui.view">
+        <field name="name">card.fee.invoice.wizard.form</field>
+        <field name="model">card.fee.invoice.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Crear Fee &amp; Financial Cost Invoice">
+                <group>
+                    <group name="vendor_info" string="Vendor Information">
+                        <field name="partner_id" 
+                               domain="['|', ('is_company', '=', True), ('supplier_rank', '>', 0)]"
+                               context="{'default_is_company': True, 'default_supplier_rank': 1, 'res_partner_search_mode': 'supplier'}"/>
+                        <field name="journal_id"/>
+                        <field name="invoice_date"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    <group name="invoice_info" string="Invoice Details">
+                        <field name="total_fee_amount" readonly="1"/>
+                        <field name="include_financial_cost"/>
+                        <field name="total_financial_cost" readonly="1" invisible="not include_financial_cost"/>
+                        <field name="description"/>
+                    </group>
+                </group>
+                
+                <notebook>
+                    <page string="Selected Accreditations" name="accreditations">
+                        <field name="accreditation_ids" readonly="1">
+                            <list string="Accreditations to Invoice" create="false" edit="false">
+                                <field name="collection_date"/>
+                                <field name="partner_id"/>
+                                <field name="journal_id"/>
+                                <field name="card_plan_id"/>
+                                <field name="batch_number"/>
+                                <field name="coupon_number"/>
+                                <field name="original_amount"/>
+                                <field name="fee" sum="Total Fees"/>
+                                <field name="financial_cost" sum="Total Financial Cost"/>
+                                <field name="state"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+                
+                <footer>
+                    <button name="action_create_invoice" 
+                            type="object" 
+                            string="Create Invoice" 
+                            class="btn-primary"/>
+                    <button string="Cancel" 
+                            class="btn-secondary" 
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Fee Invoice Wizard Action -->
+    <record id="action_card_fee_invoice_wizard" model="ir.actions.act_window">
+        <field name="name">Crear Fee &amp; Financial Cost Invoice</field>
+        <field name="res_model">card.fee.invoice.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

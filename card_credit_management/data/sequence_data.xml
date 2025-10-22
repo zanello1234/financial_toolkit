@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Sequence for Batch Transfers -->
+        <record id="sequence_card_batch_transfer" model="ir.sequence">
+            <field name="name">Card Batch Transfer</field>
+            <field name="code">card.batch.transfer</field>
+            <field name="prefix">CBT/</field>
+            <field name="suffix">/%(year)s</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

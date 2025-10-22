@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Demo Holidays -->
+        <record id="demo_holiday_demo_day" model="card.holiday">
+            <field name="name">Demo Company Holiday</field>
+            <field name="date">2025-06-15</field>
+            <field name="recurring">False</field>
+            <field name="notes">This is a demo holiday for testing purposes</field>
+        </record>
+
+    </data>
+</odoo>

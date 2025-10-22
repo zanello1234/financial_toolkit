@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- This file contains sample account configurations -->
+        <!-- In production, these accounts should be configured manually -->
+        <!-- according to the company's chart of accounts -->
+
+    </data>
+</odoo>

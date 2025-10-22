@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Demo Credit Card Plans -->
+        <record id="demo_plan_visa_ahora_12" model="card.plan">
+            <field name="name">Ahora 12</field>
+            <field name="journal_id" ref="journal_visa"/>
+            <field name="accreditation_days">15</field>
+            <field name="fee_percentage">2.5</field>
+            <field name="financial_cost_percentage">8.25</field>
+            <field name="surcharge_coefficient">1.0825</field>
+            <field name="rounding_factor">100</field>
+        </record>
+
+        <record id="demo_plan_cabal_debit" model="card.plan">
+            <field name="name">Débito</field>
+            <field name="journal_id" ref="journal_cabal"/>
+            <field name="accreditation_days">1</field>
+            <field name="fee_percentage">1.5</field>
+            <field name="financial_cost_percentage">0.0</field>
+            <field name="surcharge_coefficient">1.0</field>
+            <field name="rounding_factor">10</field>
+        </record>
+
+    </data>
+</odoo>

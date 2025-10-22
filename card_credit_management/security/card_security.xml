@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- We use native Odoo groups instead of creating custom ones -->
+        <!-- account.group_account_manager - Full access for accounting managers -->
+        <!-- account.group_account_user - Limited access for accounting users -->
+        <!-- base.group_user - Basic user access -->
+
+    </data>
+</odoo>

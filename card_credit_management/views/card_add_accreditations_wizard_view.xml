@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Add Accreditations Wizard Form View -->
+        <record id="view_card_add_accreditations_wizard_form" model="ir.ui.view">
+            <field name="name">card.add.accreditations.wizard.form</field>
+            <field name="model">card.add.accreditations.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Add Accreditations to Batch Transfer">
+                    <sheet>
+                        <group>
+                            <group name="transfer_info">
+                                <field name="batch_transfer_id"/>
+                                <field name="source_journal_id"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group name="summary">
+                                <field name="total_amount"/>
+                            </group>
+                        </group>
+                        
+                        <notebook>
+                            <page name="accreditations" string="Accreditations to Add">
+                                <field name="accreditation_ids">
+                                    <list>
+                                        <field name="partner_id"/>
+                                        <field name="batch_number"/>
+                                        <field name="coupon_number"/>
+                                        <field name="collection_date"/>
+                                        <field name="original_amount"/>
+                                        <field name="net_amount"/>
+                                        <field name="state"/>
+                                    </list>
+                                </field>
+                                
+                                <div class="alert alert-info mt16" role="alert" invisible="not accreditation_ids">
+                                    <p><strong>Note:</strong> Only pending accreditations from the same journal can be added to this batch transfer.</p>
+                                </div>
+                                
+                                <div class="alert alert-warning mt16" role="alert" invisible="accreditation_ids">
+                                    <p><strong>No pending accreditations available to add.</strong></p>
+                                </div>
+                            </page>
+                            
+                            <page name="available" string="All Available Accreditations">
+                                <div class="mb16">
+                                    <button name="action_refresh_available_accreditations" 
+                                            type="object" 
+                                            string="Refresh List" 
+                                            class="btn-secondary"
+                                            icon="fa-refresh"/>
+                                </div>
+                                
+                                <field name="available_accreditation_ids">
+                                    <list>
+                                        <field name="partner_id"/>
+                                        <field name="batch_number"/>
+                                        <field name="coupon_number"/>
+                                        <field name="collection_date"/>
+                                        <field name="original_amount"/>
+                                        <field name="net_amount"/>
+                                        <field name="state"/>
+                                        <button name="action_reset_to_pending" 
+                                                type="object" 
+                                                string="Reset to Pending" 
+                                                icon="fa-undo"
+                                                invisible="state == 'pending'"
+                                                confirm="Reset this accreditation to pending status so it can be added to the batch transfer?"/>
+                                    </list>
+                                </field>
+                                
+                                <div class="alert alert-info mt16" role="alert">
+                                    <p><strong>Tip:</strong> Use "Reset to Pending" on credited or reconciled accreditations to make them available for batch transfer. Then refresh the list and go back to the first tab to select them.</p>
+                                </div>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    
+                    <footer>
+                        <button name="action_add_accreditations" 
+                                type="object" 
+                                string="Add to Batch Transfer" 
+                                class="btn-primary"
+                                invisible="not accreditation_ids"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

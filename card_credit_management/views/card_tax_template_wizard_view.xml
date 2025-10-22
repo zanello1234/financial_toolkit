@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Card Tax Template Wizard Form View -->
+        <record id="view_card_tax_template_wizard_form" model="ir.ui.view">
+            <field name="name">card.tax.template.wizard.form</field>
+            <field name="model">card.tax.template.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Apply Tax Template">
+                    <sheet>
+                        <div class="alert alert-info" role="alert" invisible="not is_bulk_operation">
+                            <p><strong>Bulk Operation:</strong> This template will be applied to multiple accreditations.</p>
+                        </div>
+                        
+                        <group>
+                            <group name="accreditation_info">
+                                <field name="is_bulk_operation" invisible="1"/>
+                                <field name="accreditation_id" invisible="is_bulk_operation"/>
+                                <field name="accreditation_count" invisible="not is_bulk_operation" string="Selected Accreditations"/>
+                                <field name="preview_amount" string="Total Base Amount" invisible="not is_bulk_operation"/>
+                                <field name="preview_amount" string="Base Amount" invisible="is_bulk_operation"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                            <group name="template_selection">
+                                <field name="template_id"/>
+                            </group>
+                        </group>
+                        
+                        <group invisible="not is_bulk_operation">
+                            <field name="accreditation_ids" nolabel="1">
+                                <list string="Selected Accreditations" readonly="1">
+                                    <field name="partner_id"/>
+                                    <field name="batch_number"/>
+                                    <field name="coupon_number"/>
+                                    <field name="estimated_amount"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </group>
+                        
+                        <notebook invisible="not template_id">
+                            <page name="preview" string="Template Preview">
+                                <field name="template_line_ids">
+                                    <list string="Tax Lines" readonly="1">
+                                        <field name="sequence"/>
+                                        <field name="name"/>
+                                        <field name="tax_account_id"/>
+                                        <field name="percentage"/>
+                                        <field name="description"/>
+                                    </list>
+                                </field>
+                                
+                                <div class="mt16" invisible="not template_line_ids">
+                                    <p class="text-muted">
+                                        These tax deductions will be created when you apply the template.
+                                        Each line will generate a separate tax deduction based on the base amount.
+                                    </p>
+                                </div>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    
+                    <footer>
+                        <button name="action_apply_template" 
+                                type="object" 
+                                string="Apply to Selected" 
+                                class="btn-primary"
+                                invisible="not template_id or not is_bulk_operation"/>
+                        <button name="action_apply_template" 
+                                type="object" 
+                                string="Apply Template" 
+                                class="btn-primary"
+                                invisible="not template_id or is_bulk_operation"/>
+                        <button string="Cancel" 
+                                class="btn-secondary" 
+                                special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Card Tax Template Wizard Action -->
+        <record id="action_card_tax_template_wizard" model="ir.actions.act_window">
+            <field name="name">Apply Tax Template</field>
+            <field name="res_model">card.tax.template.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="context">{'default_accreditation_id': active_id}</field>
+        </record>
+
+    </data>
+</odoo>
