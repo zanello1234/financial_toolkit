@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Server Action to Clean Payable Account Conflicts -->
+    <record id="action_clean_payable_conflicts" model="ir.actions.server">
+        <field name="name">Clean Payable Account Conflicts</field>
+        <field name="model_id" ref="account.model_account_account"/>
+        <field name="binding_model_id" ref="account.model_account_account"/>
+        <field name="state">code</field>
+        <field name="code">
+# Clean all existing conflicts where partners are assigned to multiple payable accounts
+conflicts_found = env['account.account'].clean_all_payable_conflicts()
+
+# Prepare notification message
+if conflicts_found:
+    message_lines = ["🔧 Payable Account Conflicts Cleaned:"]
+    for conflict in conflicts_found:
+        message_lines.append(f"• {conflict['partner']}")
+        message_lines.append(f"  ✅ Kept in: {conflict['kept_account']}")
+        message_lines.append(f"  ❌ Removed from: {', '.join(conflict['removed_from'])}")
+    
+    message = "\n".join(message_lines)
+    notification_type = "success"
+    title = f"Cleaned {len(conflicts_found)} conflicts"
+else:
+    message = "✅ No conflicts found! All partners have proper single payable account assignments."
+    notification_type = "info"
+    title = "No Conflicts Found"
+
+# Show notification
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': title,
+        'message': message,
+        'type': notification_type,
+        'sticky': True,
+    }
+}
+        </field>
+    </record>
+
+    <!-- Menu item for the cleanup action -->
+    <menuitem id="menu_clean_payable_conflicts"
+              name="Clean Payable Conflicts"
+              parent="account.menu_finance_configuration"
+              action="action_clean_payable_conflicts"
+              sequence="99"
+              groups="account.group_account_manager"/>
+
+</odoo>

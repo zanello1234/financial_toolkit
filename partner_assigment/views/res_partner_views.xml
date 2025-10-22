@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Partner Form View -->
+    <record id="view_partner_form_assigned_accounts" model="ir.ui.view">
+        <field name="name">res.partner.form.assigned.accounts</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="account.view_partner_property_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='property_account_payable_id']" position="after">
+                <field name="assigned_account_ids" 
+                       widget="many2many_tags"
+                       readonly="1"
+                       help="Accounts where this partner is specifically assigned"/>
+            </xpath>
+        </field>
+    </record>
+    
+    <!-- Partner Tree View - add assigned accounts column -->
+    <record id="view_partner_tree_assigned_accounts" model="ir.ui.view">
+        <field name="name">res.partner.tree.assigned.accounts</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='email']" position="after">
+                <field name="assigned_account_ids" 
+                       widget="many2many_tags"
+                       optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
