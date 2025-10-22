@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Demo Partners for testing -->
+        <record id="demo_partner_supplier_1" model="res.partner">
+            <field name="name">Restricted Supplier 1</field>
+            <field name="is_company" eval="True"/>
+            <field name="supplier_rank">1</field>
+            <field name="customer_rank">0</field>
+        </record>
+
+        <record id="demo_partner_supplier_2" model="res.partner">
+            <field name="name">Restricted Supplier 2</field>
+            <field name="is_company" eval="True"/>
+            <field name="supplier_rank">1</field>
+            <field name="customer_rank">0</field>
+        </record>
+
+        <record id="demo_partner_customer_1" model="res.partner">
+            <field name="name">Restricted Customer 1</field>
+            <field name="is_company" eval="True"/>
+            <field name="supplier_rank">0</field>
+            <field name="customer_rank">1</field>
+        </record>
+
+        <!-- Demo: Configure a purchase journal with partner restrictions -->
+        <record id="demo_purchase_journal_restricted" model="account.journal">
+            <field name="name">Purchase Journal (Restricted)</field>
+            <field name="code">PJREST</field>
+            <field name="type">purchase</field>
+            <field name="restrict_partners" eval="True"/>
+            <field name="allowed_partner_ids" eval="[(6, 0, [ref('demo_partner_supplier_1'), ref('demo_partner_supplier_2')])]"/>
+        </record>
+
+        <!-- Demo: Configure a sale journal with partner restrictions -->
+        <record id="demo_sale_journal_restricted" model="account.journal">
+            <field name="name">Sale Journal (Restricted)</field>
+            <field name="code">SJREST</field>
+            <field name="type">sale</field>
+            <field name="restrict_partners" eval="True"/>
+            <field name="allowed_partner_ids" eval="[(6, 0, [ref('demo_partner_customer_1')])]"/>
+        </record>
+
+    </data>
+</odoo>

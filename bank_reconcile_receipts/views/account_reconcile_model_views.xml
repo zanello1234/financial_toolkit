@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Extend Account Reconcile Model Form View -->
+        <record id="account_reconcile_model_view_form_inherit" model="ir.ui.view">
+            <field name="name">account.reconcile.model.form.inherit</field>
+            <field name="model">account.reconcile.model</field>
+            <field name="inherit_id" ref="account.view_account_reconcile_model_form"/>
+            <field name="arch" type="xml">
+                <!-- Add payment specific fields after counterpart_type -->
+                <field name="counterpart_type" position="after">
+                    <!-- Payment configuration section for receipts and payments -->
+                    <group string="Payment Configuration" 
+                           invisible="counterpart_type not in ('customer_receipts', 'vendor_payments')"
+                           colspan="2">
+                        <field name="payment_method_line_id" 
+                               domain="[('payment_type', '=', 'inbound' if counterpart_type == 'customer_receipts' else 'outbound')]"
+                               options="{'no_create': True}"/>
+                        <field name="auto_post_payment"/>
+                        <field name="payment_memo_template" 
+                               placeholder="e.g. Bank reconciliation: {statement_name}"
+                               help="Available variables: {statement_name}, {partner_name}, {amount}"/>
+                    </group>
+                </field>
+                
+                <!-- Add help text for new counterpart types -->
+                <field name="counterpart_type" position="attributes">
+                    <attribute name="help">Choose the type of counterpart:
+• Manual: Create manual journal entries
+• Customer Receipts: Automatically create customer payment receipts
+• Vendor Payments: Automatically create vendor payment entries
+• Invoices/Bills: Match with existing invoices or bills</attribute>
+                </field>
+            </field>
+        </record>
+
+        <!-- Extend Account Reconcile Model Tree View -->
+        <record id="account_reconcile_model_view_tree_inherit" model="ir.ui.view">
+            <field name="name">account.reconcile.model.tree.inherit</field>
+            <field name="model">account.reconcile.model</field>
+            <field name="inherit_id" ref="account.view_account_reconcile_model_tree"/>
+            <field name="arch" type="xml">
+                <!-- Add payment method column after name field -->
+                <field name="name" position="after">
+                    <field name="counterpart_type" optional="show"/>
+                    <field name="payment_method_line_id" optional="hide"
+                           invisible="counterpart_type not in ('customer_receipts', 'vendor_payments')"/>
+                </field>
+            </field>
+        </record>
+
+        <!-- Add menu action for better discoverability -->
+        <record id="action_account_reconcile_model_payments" model="ir.actions.act_window">
+            <field name="name">Payment Reconcile Models</field>
+            <field name="res_model">account.reconcile.model</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('counterpart_type', 'in', ['customer_receipts', 'vendor_payments'])]</field>
+            <field name="context">{'default_rule_type': 'writeoff_button'}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create payment reconcile models!
+                </p>
+                <p>
+                    Payment reconcile models allow you to automatically create customer receipts 
+                    or vendor payments during bank reconciliation. This streamlines the process 
+                    of recording payments that appear on bank statements.
+                </p>
+                <p>
+                    <strong>Customer Receipts:</strong> For payments received from customers<br/>
+                    <strong>Vendor Payments:</strong> For payments made to suppliers
+                </p>
+            </field>
+        </record>
+
+        <!-- Add submenu under Accounting Configuration -->
+        <menuitem id="menu_account_reconcile_model_payments"
+                  name="Payment Reconcile Models"
+                  parent="account.account_account_menu"
+                  action="action_account_reconcile_model_payments"
+                  sequence="15"/>
+
+    </data>
+</odoo>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Extend statement line tree view to show payment_ref as Etiqueta -->
+    <record id="view_statement_line_tree_with_tag" model="ir.ui.view">
+        <field name="name">account.bank.statement.line.tree.tag</field>
+        <field name="model">account.bank.statement.line</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="date"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="payment_ref" string="Etiqueta"/>
+                <field name="ref"/>
+                <field name="amount" sum="Total"/>
+                <field name="statement_id" invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+</odoo>

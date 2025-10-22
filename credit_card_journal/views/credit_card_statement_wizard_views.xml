@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Credit Card Statement Wizard Form View -->
+    <record id="view_credit_card_statement_wizard_form" model="ir.ui.view">
+        <field name="name">credit.card.statement.wizard.form</field>
+        <field name="model">credit.card.statement.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Generar Resumen de Tarjeta de Crédito">
+                <!-- State bar -->
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="import,charges,close"/>
+                </header>
+                
+                <sheet>
+                    <!-- Basic info always visible -->
+                    <group>
+                        <field name="journal_id"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    
+                    <!-- Step 1: Import Transactions -->
+                    <div invisible="state != 'import'">
+                        <group string="Fechas del Resumen">
+                            <group>
+                                <field name="closing_date"/>
+                                <field name="due_date"/>
+                            </group>
+                            <group>
+                                <field name="last_closing_date"/>
+                                <field name="last_due_date"/>
+                            </group>
+                        </group>
+                        
+                        <group string="Consumos Importados">
+                            <group>
+                                <field name="previous_balance" widget="monetary" string="Saldo del Resumen Anterior"/>
+                                <field name="consumptions_ars" widget="monetary"/>
+                                <field name="consumptions_usd" widget="monetary"/>
+                                <field name="payments_ars" widget="monetary" string="Pagos en Pesos (ARS)"/>
+                                <field name="payments_usd" widget="monetary" string="Pagos en Dólares (USD)"/>
+                            </group>
+                            <group>
+                                <field name="consumptions_total" widget="monetary"/>
+                                <field name="payments_total" widget="monetary" string="Total Pagos"/>
+                            </group>
+                        </group>
+                    </div>
+                    
+                    <!-- Step 2: Add Charges -->
+                    <div invisible="state != 'charges'">
+                        <group string="Gastos del Resumen">
+                            <group>
+                                <field name="taxes_amount" widget="monetary"/>
+                                <field name="interest_amount" widget="monetary"/>
+                            </group>
+                            <group>
+                                <field name="stamp_amount" widget="monetary"/>
+                                <field name="other_charges_amount" widget="monetary"/>
+                            </group>
+                            <group>
+                                <field name="total_charges" widget="monetary" class="oe_subtotal_footer_separator"/>
+                            </group>
+                        </group>
+                    </div>
+                    
+                    <!-- Step 3: Close Summary -->
+                    <div invisible="state != 'close'">
+                        <group string="Resumen Final">
+                            <group string="Detalle de Consumos y Pagos">
+                                <field name="previous_balance" widget="monetary" string="Saldo del Resumen Anterior"/>
+                                <field name="consumptions_ars" widget="monetary" string="Consumos en Pesos (ARS)"/>
+                                <field name="consumptions_usd" widget="monetary" string="Consumos en Dólares (USD)"/>
+                                <field name="payments_ars" widget="monetary" string="Pagos en Pesos (ARS)"/>
+                                <field name="payments_usd" widget="monetary" string="Pagos en Dólares (USD)"/>
+                                <field name="total_charges" widget="monetary" string="Total Gastos del Resumen"/>
+                            </group>
+                            <group string="Totales a Pagar">
+                                <field name="total_to_pay_ars" widget="monetary" class="oe_subtotal_footer_separator" string="Total a Pagar (ARS)"/>
+                                <field name="total_to_pay_usd" widget="monetary" class="oe_subtotal_footer_separator" string="Total a Pagar (USD)"/>
+                                <field name="total_to_pay" widget="monetary" style="font-weight: bold; font-size: 1.2em; color: #875A7B;" string="Total General (Ending Balance)"/>
+                            </group>
+                        </group>
+                        
+                        <!-- Account Balance Information -->
+                        <group string="Validación de Saldos">
+                            <group>
+                                <div>
+                                    <strong>Saldo Cuenta Contable:</strong>
+                                    <br/>
+                                    <span style="font-weight: bold; color: #2E8B57;">
+                                        Este será capturado automáticamente al cerrar el resumen
+                                    </span>
+                                </div>
+                            </group>
+                            <group>
+                                <div>
+                                    <strong>Ending Balance:</strong>
+                                    <br/>
+                                    <span style="font-weight: bold; color: #875A7B;">
+                                        Será igual al Total General (<field name="total_to_pay" widget="monetary" readonly="1"/>)
+                                    </span>
+                                </div>
+                            </group>
+                        </group>
+                        
+                        <!-- Explanation note -->
+                        <div class="alert alert-info" style="margin-top: 16px;" role="alert">
+                            <strong>Nota:</strong> El cálculo del total a pagar considera el saldo del resumen anterior más los consumos y gastos del período, menos los pagos realizados.
+                            <br/>
+                            <strong>Fórmula:</strong> Total a Pagar = Saldo Anterior + Consumos + Gastos - Pagos
+                            <br/>
+                            <strong>Convención:</strong> Valores negativos = Deuda a pagar | Valores positivos = Saldo a favor
+                            <br/>
+                            <strong>Ending Balance:</strong> En resúmenes de tarjeta será igual al Total General (deuda a pagar)
+                            <br/>
+                            <strong>Saldo Cuenta:</strong> Refleja el saldo real de la cuenta contable al momento del cierre
+                        </div>
+                    </div>
+                </sheet>
+                
+                <!-- Footer with state-dependent buttons -->
+                <footer>
+                    <!-- Import state buttons -->
+                    <div invisible="state != 'import'">
+                        <button name="action_generate_statement" type="object" 
+                                string="Importar y Continuar" class="oe_highlight"/>
+                        <button name="action_next_import_to_charges" type="object" 
+                                string="Saltear Importación" class="btn-secondary"/>
+                        <button special="cancel" string="Cancelar"/>
+                    </div>
+                    
+                    <!-- Charges state buttons -->
+                    <div invisible="state != 'charges'">
+                        <button name="action_add_charges" type="object" 
+                                string="Aplicar Gastos" class="oe_highlight"/>
+                        <button name="action_next_charges_to_close" type="object" 
+                                string="Continuar sin Gastos" class="btn-secondary"/>
+                        <button name="action_back_to_import" type="object" 
+                                string="Volver" class="btn-secondary"/>
+                        <button special="cancel" string="Cancelar"/>
+                    </div>
+                    
+                    <!-- Close state buttons -->
+                    <div invisible="state != 'close'">
+                        <button name="action_close_statement" type="object" 
+                                string="Cerrar Resumen" class="oe_highlight"/>
+                        <button name="action_back_to_charges" type="object" 
+                                string="Volver a Gastos" class="btn-secondary"/>
+                        <button special="cancel" string="Cancelar"/>
+                    </div>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Credit Card Statement Wizard Action -->
+    <record id="action_credit_card_statement_wizard" model="ir.actions.act_window">
+        <field name="name">Generar Resumen de Tarjeta de Crédito</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">credit.card.statement.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_journal_id': active_id}</field>
+    </record>
+    
+</odoo>

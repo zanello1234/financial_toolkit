@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Credit Card Payment Wizard Form View -->
+        <record id="view_credit_card_payment_wizard_form" model="ir.ui.view">
+            <field name="name">credit.card.payment.wizard.form.v2</field>
+            <field name="model">credit.card.payment.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Pay Credit Card">
+                    <div class="alert alert-info" role="alert" style="margin-bottom: 16px;">
+                        <strong>Current Credit Card Balance:</strong> 
+                        <field name="credit_card_balance" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="journal_id" readonly="1"/>
+                            <field name="source_journal_id" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="payment_date"/>
+                            <field name="memo" placeholder="Credit Card Payment"/>
+                        </group>
+                    </group>
+                    
+                    <separator string="Opciones de Pago"/>
+                    <group>
+                        <group>
+                            <field name="payment_type" widget="radio"/>
+                            <field name="amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                        </group>
+                        <group>
+                            <label for="total_ars_debt" string="Deuda en ARS:"/>
+                            <field name="total_ars_debt" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1" nolabel="1"/>
+                            <label for="total_usd_debt" string="Deuda en USD:"/>
+                            <field name="total_usd_debt" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1" nolabel="1"/>
+                            <label for="total_general_debt" string="Total General:"/>
+                            <field name="total_general_debt" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1" nolabel="1"/>
+                        </group>
+                    </group>
+                    
+                    <footer>
+                        <button name="action_create_payment" type="object" string="Create Payment" class="oe_highlight"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Credit Card Payment Wizard Action -->
+        <record id="action_credit_card_payment_wizard" model="ir.actions.act_window">
+            <field name="name">Pay Credit Card</field>
+            <field name="res_model">credit.card.payment.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="view_id" ref="view_credit_card_payment_wizard_form"/>
+        </record>
+    </data>
+</odoo>

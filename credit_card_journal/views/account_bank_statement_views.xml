@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Bank Statement Form View Extension for Credit Card Statements -->
+    <record id="view_bank_statement_form_credit_card" model="ir.ui.view">
+        <field name="name">account.bank.statement.form.credit.card</field>
+        <field name="model">account.bank.statement</field>
+        <field name="inherit_id" ref="account_accountant.view_bank_statement_form_bank_rec_widget"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='balance_end_real']" position="after">
+                <field name="is_credit_card_statement" invisible="1"/>
+                
+                <!-- Credit Card Specific Information Group -->
+                <group string="Información de Tarjeta de Crédito" 
+                       invisible="not is_credit_card_statement"
+                       col="2">
+                    <group>
+                        <field name="closing_date" string="Fecha de Cierre"/>
+                        <field name="due_date" string="Fecha de Vencimiento"/>
+                    </group>
+                    <group>
+                        <field name="account_balance" 
+                               string="Saldo Cuenta Contable"
+                               widget="monetary"
+                               help="Saldo real de la cuenta contable al cierre"/>
+                        <field name="statement_total_general" 
+                               string="Total Deuda Calculada"
+                               widget="monetary"
+                               help="Total de deuda calculada en el resumen (debe ser igual al Ending Balance)"/>
+                    </group>
+                </group>
+                
+                <!-- Debt breakdown by currency -->
+                <group string="Desglose de Deuda por Moneda" 
+                       invisible="not is_credit_card_statement"
+                       col="2">
+                    <group>
+                        <field name="debt_ars" 
+                               string="Deuda en Pesos (ARS)"
+                               widget="monetary"/>
+                        <field name="statement_total_ars" 
+                               string="Total ARS Calculado"
+                               widget="monetary"/>
+                    </group>
+                    <group>
+                        <field name="debt_usd" 
+                               string="Deuda en Dólares (USD)"
+                               widget="monetary"/>
+                        <field name="statement_total_usd" 
+                               string="Total USD Calculado"
+                               widget="monetary"/>
+                    </group>
+                </group>
+                
+                <!-- Balance validation alert -->
+                <div class="alert alert-info" 
+                     invisible="not is_credit_card_statement"
+                     role="alert">
+                    <strong>Validación de Saldos:</strong>
+                    <br/>• <strong>Ending Balance:</strong> Representa la deuda total a pagar
+                    <br/>• <strong>Saldo Cuenta Contable:</strong> Saldo real de la cuenta al cierre del resumen
+                    <br/>• <strong>Total Deuda Calculada:</strong> Debe coincidir con el Ending Balance
+                    <br/>• <strong>Nota:</strong> Si hay diferencias, revisar la reconciliación de movimientos
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Bank Statement Tree View Extension for Credit Card Statements -->
+    <record id="view_bank_statement_tree_credit_card" model="ir.ui.view">
+        <field name="name">account.bank.statement.tree.credit.card</field>
+        <field name="model">account.bank.statement</field>
+        <field name="inherit_id" ref="account.view_bank_statement_tree"/>
+        <field name="arch" type="xml">
+            <!-- Add credit card specific fields after ending balance -->
+            <xpath expr="//field[@name='balance_end_real']" position="after">
+                <field name="is_credit_card_statement" column_invisible="True"/>
+                <field name="account_balance" 
+                       invisible="not is_credit_card_statement"
+                       string="Saldo Cuenta"
+                       widget="monetary"/>
+                <field name="closing_date" 
+                       invisible="not is_credit_card_statement"
+                       string="Fecha Cierre"/>
+                <field name="due_date" 
+                       invisible="not is_credit_card_statement"
+                       string="Fecha Venc."/>
+                <field name="debt_ars" 
+                       invisible="not is_credit_card_statement"
+                       string="Deuda ARS"
+                       widget="monetary"/>
+                <field name="debt_usd" 
+                       invisible="not is_credit_card_statement"
+                       string="Deuda USD"
+                       widget="monetary"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Action to view credit card statements -->
+    <record id="action_bank_statement_credit_card" model="ir.actions.act_window">
+        <field name="name">Credit Card Statements</field>
+        <field name="res_model">account.bank.statement</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_credit_card_statement', '=', True)]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No credit card statements found!
+            </p>
+            <p>
+                Credit card statements are generated through the credit card journal management.
+                Use the "Resumen" button on credit card journals to create new statements.
+            </p>
+        </field>
+    </record>
+</odoo>

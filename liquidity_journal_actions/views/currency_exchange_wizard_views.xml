@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista de formulario del wizard de cambio de divisas -->
+    <record id="view_currency_exchange_wizard_form" model="ir.ui.view">
+        <field name="name">currency.exchange.wizard.form</field>
+        <field name="model">currency.exchange.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Operación de Cambio de Divisa">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="operation_type" class="oe_edit_only"/>
+                        <h1>
+                            <field name="operation_type" widget="radio" options="{'horizontal': true}"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="journal_id" required="1"/>
+                            <field name="foreign_currency_id" readonly="1"/>
+                            <field name="amount_currency" required="1"/>
+                        </group>
+                        <group>
+                            <field name="local_journal_id" required="1"/>
+                            <field name="company_currency_id" invisible="1"/>
+                            <field name="exchange_rate" required="1"/>
+                            <field name="amount_company" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group>
+                            <field name="date" required="1"/>
+                            <field name="memo" placeholder="Ej: Compra USD para importación"/>
+                        </group>
+                    </group>
+                    
+                    <div class="oe_clear"/>
+                    <div class="alert alert-info mt-3" role="alert">
+                        <strong>Información:</strong><br/>
+                        Esta operación creará una transferencia interna entre los diarios seleccionados usando el tipo de cambio especificado.
+                    </div>
+                </sheet>
+                
+                <footer>
+                    <button string="Crear Transferencia" 
+                            name="action_create_internal_transfer" 
+                            type="object" 
+                            class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción del wizard -->
+    <record id="action_currency_exchange_wizard" model="ir.actions.act_window">
+        <field name="name">Cambio de Divisa</field>
+        <field name="res_model">currency.exchange.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

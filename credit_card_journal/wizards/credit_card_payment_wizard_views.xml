@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Credit Card Payment Wizard View -->
+    <record id="credit_card_payment_wizard_form" model="ir.ui.view">
+        <field name="name">credit.card.payment.wizard.form</field>
+        <field name="model">credit.card.payment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Pay Credit Card">
+                <div class="alert alert-info" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white;">
+                    <div class="text-center">
+                        <h4 style="color: white;">💳 Credit Card Payment</h4>
+                        <p style="margin: 0;">Make an internal transfer to pay your credit card</p>
+                    </div>
+                </div>
+                
+                <group>
+                    <group string="Credit Card Information">
+                        <field name="journal_id" readonly="1"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="company_id" invisible="1"/>
+                        <field name="credit_card_balance" widget="monetary"/>
+                    </group>
+                    <group string="Payment Details">
+                        <field name="source_journal_id" placeholder="Select account to pay from..."/>
+                        <field name="amount" widget="monetary"/>
+                        <field name="payment_date"/>
+                        <field name="memo"/>
+                    </group>
+                </group>
+                
+                <div class="alert alert-warning mt-3" invisible="credit_card_balance &gt;= 0">
+                    <strong>Outstanding Balance:</strong> You owe <field name="credit_card_balance" widget="monetary" nolabel="1" readonly="1"/> on this credit card.
+                </div>
+                
+                <div class="alert alert-success mt-3" invisible="credit_card_balance &lt; 0">
+                    <strong>Good News:</strong> Your credit card has a positive balance of <field name="credit_card_balance" widget="monetary" nolabel="1" readonly="1"/>.
+                </div>
+
+                <footer>
+                    <button name="action_create_payment" 
+                            type="object" 
+                            string="Create Payment" 
+                            class="btn-primary"
+                            invisible="amount &lt;= 0"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action for the wizard -->
+    <record id="action_credit_card_payment_wizard" model="ir.actions.act_window">
+        <field name="name">Pay Credit Card</field>
+        <field name="res_model">credit.card.payment.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+    </record>
+
+</odoo>

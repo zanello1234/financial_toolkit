@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista Kanban extendida para diarios de liquidez -->
+    <record id="view_account_journal_kanban_liquidity" model="ir.ui.view">
+        <field name="name">account.journal.kanban.liquidity</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.account_journal_dashboard_kanban_view"/>
+        <field name="arch" type="xml">
+            <!-- Agregar el campo necesario -->
+            <field name="activity_state" position="after">
+                <field name="is_liquidity_journal"/>
+                <field name="currency_id"/>
+                <field name="company_id"/>
+            </field>
+            
+            <xpath expr="//div[@name='bank_cash_buttons']" position="after">
+                <!-- Sección para diarios de liquidez (banco/efectivo) -->
+                <div t-if="record.is_liquidity_journal.raw_value" class="mt-2">
+                    <div class="d-flex gap-1">
+                        <t t-set="is_foreign_currency" t-value="record.currency_id.raw_value and record.currency_id.raw_value != record.company_id.raw_value[1]"/>
+                        
+                        <button type="object" 
+                                class="btn btn-success btn-sm"
+                                name="action_create_collection">
+                            <i class="fa fa-plus-circle"/>
+                            <t t-if="is_foreign_currency"> Comprar</t>
+                            <t t-else=""> Cobrar</t>
+                        </button>
+                        <button type="object" 
+                                class="btn btn-warning btn-sm"
+                                name="action_create_payment">
+                            <i class="fa fa-minus-circle"/>
+                            <t t-if="is_foreign_currency"> Vender</t>
+                            <t t-else=""> Pagar</t>
+                        </button>
+                        <button type="object" 
+                                class="btn btn-primary btn-sm"
+                                name="action_create_transfer">
+                            <i class="fa fa-exchange"/> Transferir
+                        </button>
+                        <button type="object" 
+                                class="btn btn-info btn-sm"
+                                name="action_view_payments">
+                            <i class="fa fa-list"/> Ver Movimientos
+                        </button>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

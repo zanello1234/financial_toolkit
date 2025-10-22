@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Inherit account move form view to add partner restrictions -->
+        <record id="view_move_form_inherit" model="ir.ui.view">
+            <field name="name">account.move.form.inherit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <!-- Add invisible computed field -->
+                <xpath expr="//field[@name='partner_id']" position="before">
+                    <field name="allowed_partner_ids" invisible="1"/>
+                </xpath>
+                
+                <!-- Modify partner_id field to use domain -->
+                <xpath expr="//field[@name='partner_id']" position="attributes">
+                    <attribute name="domain">[('id', 'in', allowed_partner_ids)]</attribute>
+                    <attribute name="help">Partner selection may be restricted based on journal configuration</attribute>
+                    <attribute name="context">{'force_partner_restriction_update': True}</attribute>
+                </xpath>
+                
+                <!-- Add warning message when restrictions are active -->
+                <xpath expr="//field[@name='partner_id']" position="after">
+                    <div class="alert alert-info" 
+                         role="alert"
+                         invisible="not journal_id or not journal_id.restrict_partners"
+                         style="margin: 5px 0;">
+                        <strong>Partner Restriction Active:</strong> Only specific partners are allowed for this journal.
+                        <span invisible="not allowed_partner_ids"> 
+                            (<field name="allowed_partner_ids" widget="many2many_tags" readonly="1" nolabel="1" style="display: inline;"/>)
+                        </span>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

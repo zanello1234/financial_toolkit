@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        
+        <!-- Add partner restriction fields to journal form view -->
+        <record id="view_account_journal_form_inherit" model="ir.ui.view">
+            <field name="name">account.journal.form.inherit</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook" position="inside">
+                    <page string="Partner Restrictions" name="partner_restrictions">
+                        <group>
+                            <group string="Configuration">
+                                <field name="restrict_partners"/>
+                                <div class="text-muted" invisible="restrict_partners">
+                                    <p><strong>Partner Restrictions:</strong></p>
+                                    <p>Enable this option to limit which partners can be selected when using this journal for invoices and bills.</p>
+                                    <p>When enabled, only the partners you specify will be available for selection.</p>
+                                </div>
+                            </group>
+                            <group string="Allowed Partners" invisible="not restrict_partners">
+                                <field name="allowed_partner_ids" 
+                                       widget="many2many_tags" 
+                                       required="restrict_partners"
+                                       options="{'no_create': True, 'no_create_edit': True}"
+                                       placeholder="Select partners allowed for this journal"
+                                       nolabel="1"/>
+                                <div class="text-muted">
+                                    <p><strong>Important:</strong></p>
+                                    <ul>
+                                        <li>Only selected partners will be available when creating invoices/bills with this journal</li>
+                                        <li>The restriction applies to both customer invoices and vendor bills</li>
+                                        <li>You can modify this list at any time</li>
+                                    </ul>
+                                </div>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Add partner restriction fields to journal tree view -->
+        <record id="view_account_journal_tree_inherit" model="ir.ui.view">
+            <field name="name">account.journal.tree.inherit</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='type']" position="after">
+                    <field name="restrict_partners" optional="hide"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>
