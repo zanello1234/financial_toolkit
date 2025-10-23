@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2025 Akretion France (https://www.akretion.com/)
+  @author: Alexis de Lattre <alexis.delattre@akretion.com>
+  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+-->
+
+<odoo>
+
+    <record id="account_dashboard_banner_cell_form" model="ir.ui.view">
+        <field name="model">account.dashboard.banner.cell</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_view_records" type="object" string="View Records" class="btn-primary"/>
+                    <button name="test_mathematical_operations" type="object" string="Test Math Operation" 
+                            class="btn-warning" invisible="cell_type != 'kpi_math_operation'"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_records" icon="fa-list">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">View Records</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <group name="main">
+                        <group name="main-left">
+                            <field name="cell_type"/>
+                            <field name="category"/>
+                            <field name="active_in_dashboard" widget="boolean_toggle"/>
+                            <field name="sequence"/>
+                            <field name="warn_type_show" invisible="1"/>
+                            <field name="warn"/>
+                            <label for="warn_lock_date_days" string="Warn if lock date is older than" invisible="not warn or cell_type not in ('tax_lock_date', 'sale_lock_date', 'purchase_lock_date', 'fiscalyear_lock_date', 'hard_lock_date')"/>
+                            <div name="warn_lock_date_days" invisible="not warn or cell_type not in ('tax_lock_date', 'sale_lock_date', 'purchase_lock_date', 'fiscalyear_lock_date', 'hard_lock_date')">
+                                <field name="warn_lock_date_days" class="oe_inline"/> days
+                            </div>
+                            <field name="warn_type" invisible="not warn_type_show" required="warn_type_show" string="Warn If"/>
+                            <field name="warn_min" invisible="not warn_type_show or warn_type == 'above'"/>
+                            <field name="warn_max" invisible="not warn_type_show or warn_type == 'under'"/>
+                            
+                            <!-- Advanced Color System -->
+                            <field name="use_color_thresholds" invisible="not warn" string="Use Color System"/>
+                            <label for="yellow_threshold_percentage" string="Yellow Warning Distance" 
+                                   invisible="not warn or not use_color_thresholds"/>
+                            <div invisible="not warn or not use_color_thresholds">
+                                <field name="yellow_threshold_percentage" class="oe_inline"/> % from limit
+                            </div>
+                        </group>
+                        <group name="main-right">
+                            <field name="custom_label" string="Custom Label (optional)" />
+                            <field name="custom_tooltip" string="Custom Tooltip (optional)"/>
+                            
+                            <separator string="Target &amp; Achievement" colspan="2"/>
+                            <field name="show_target_percentage" string="Show Achievement %"/>
+                            <field name="target_value" string="Target Value" 
+                                   invisible="not show_target_percentage"/>
+                            
+                            <separator string="Click Action Configuration" colspan="2"/>
+                            <field name="click_action"/>
+                            <field name="action_domain" widget="text" placeholder="[(&apos;field&apos;, &apos;=&apos;, &apos;value&apos;)]" 
+                                   invisible="click_action == 'none'"/>
+                            
+                            <separator string="Account Selection Configuration" colspan="2"/>
+                            
+                            <!-- Selector de modo de cuentas - siempre visible -->
+                            <field name="account_selection_mode" 
+                                   widget="radio"
+                                   string="Account Selection Mode"/>
+                            
+                            <!-- Configuración por tipo de cuenta -->
+                            <field name="account_type_filter"
+                                   invisible="account_selection_mode != 'by_type'"
+                                   string="Account Type"/>
+                            
+                            <!-- Configuración de cuentas específicas -->
+                            <field name="specific_account_ids" widget="many2many_tags"
+                                   invisible="account_selection_mode != 'specific'"
+                                   domain="[('deprecated', '=', False)]"
+                                   string="Specific Accounts"/>
+                            
+                            <!-- Configuración legacy de liquidez (solo visible para backward compatibility) -->
+                            <field name="liquidity_mode" 
+                                   invisible="cell_type != 'liquidity' or account_selection_mode != 'legacy'"
+                                   widget="radio"
+                                   string="Legacy Liquidity Mode"/>
+                            
+                            <div class="alert alert-info" role="alert" invisible="account_selection_mode == 'legacy'">
+                                <strong>Universal Account Selection:</strong><br/>
+                                • <strong>By Account Type:</strong> Automatically selects all accounts of the chosen type<br/>
+                                • <strong>Specific Accounts:</strong> Manually choose individual accounts<br/>
+                                • Works with any cell type for maximum flexibility
+                            </div>
+                            
+                            <div class="alert alert-warning" role="alert" invisible="cell_type != 'liquidity' or account_selection_mode != 'legacy'">
+                                <strong>Legacy Mode:</strong> Using old liquidity-specific configuration. Consider switching to universal account selection.
+                            </div>
+                            
+                            <separator string="Mathematical Operations Configuration" colspan="2" invisible="cell_type != 'kpi_math_operation'"/>
+                            
+                            <field name="math_operation"
+                                   invisible="cell_type != 'kpi_math_operation'"
+                                   widget="radio"/>
+                                   
+                            <field name="kpi_operand_a_id"
+                                   invisible="cell_type != 'kpi_math_operation'"
+                                   domain="[('id', '!=', id)]"/>
+                                   
+                            <field name="kpi_operand_b_id"
+                                   invisible="cell_type != 'kpi_math_operation'"
+                                   domain="[('id', '!=', id), ('id', '!=', kpi_operand_a_id)]"/>
+                                   
+                            <field name="math_decimal_places"
+                                   invisible="cell_type != 'kpi_math_operation'"/>
+                            
+                            <field name="math_result_format"
+                                   invisible="cell_type != 'kpi_math_operation'"
+                                   widget="radio"/>
+                            
+                            <field name="math_custom_suffix"
+                                   invisible="cell_type != 'kpi_math_operation' or math_result_format != 'custom'"
+                                   placeholder="e.g., days, items, units"/>
+                            
+                            <separator string="Historical Range Configuration" colspan="2"/>
+                            
+                            <field name="show_historical_range" widget="boolean_toggle"/>
+                            
+                            <field name="historical_period_days"
+                                   invisible="not show_historical_range"/>
+                            
+                            <div class="alert alert-info" role="alert" invisible="not show_historical_range">
+                                <strong>Historical Range:</strong><br/>
+                                Shows minimum and maximum values below the main metric based on historical data from the specified period.
+                            </div>
+                            
+                            <div class="alert alert-info" role="alert" invisible="cell_type != 'kpi_math_operation'">
+                                <strong>Mathematical Operations:</strong><br/>
+                                • <strong>Addition (+):</strong> KPI A + KPI B<br/>
+                                • <strong>Subtraction (-):</strong> KPI A - KPI B<br/>
+                                • <strong>Multiplication (×):</strong> KPI A × KPI B<br/>
+                                • <strong>Division (÷):</strong> KPI A ÷ KPI B<br/>
+                                • <strong>Percentage:</strong> (KPI A ÷ KPI B) × 100%<br/>
+                                Choose two different KPIs to perform mathematical operations between them.
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="account_dashboard_banner_cell_list" model="ir.ui.view">
+        <field name="model">account.dashboard.banner.cell</field>
+        <field name="arch" type="xml">
+            <list>
+                <header>
+                    <button name="create_test_kpis" type="object" string="Create Test KPIs" class="btn-secondary"/>
+                </header>
+                <field name="sequence" widget="handle"/>
+                <field name="cell_type"/>
+                <field name="category" optional="show"/>
+                <field name="active_in_dashboard" widget="boolean_toggle"/>
+                <field name="click_action" optional="show"/>
+                <field name="warn" widget="boolean_toggle" optional="show"/>
+                <field name="custom_label" string="Custom Label" optional="show"/>
+                <field name="custom_tooltip" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista Kanban con categorías -->
+    <record id="account_dashboard_banner_cell_kanban" model="ir.ui.view">
+        <field name="model">account.dashboard.banner.cell</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="category" class="o_kanban_dashboard">
+                <field name="id"/>
+                <field name="cell_type"/>
+                <field name="category"/>
+                <field name="active_in_dashboard"/>
+                <field name="custom_label"/>
+                <field name="click_action"/>
+                <field name="warn"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_content">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <strong><field name="custom_label"/> 
+                                            <span t-if="!record.custom_label.value">
+                                                <field name="cell_type"/>
+                                            </span>
+                                        </strong>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <span t-if="record.active_in_dashboard.raw_value" 
+                                              class="badge bg-success">Active</span>
+                                        <span t-else="1" class="badge bg-secondary">Hidden</span>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <i class="fa fa-mouse-pointer text-muted me-1"/>
+                                        <span class="text-muted small">
+                                            <field name="click_action"/>
+                                        </span>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <span t-if="record.warn.raw_value" 
+                                              class="badge bg-warning">
+                                            <i class="fa fa-exclamation-triangle"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Vista de búsqueda con filtros -->
+    <record id="account_dashboard_banner_cell_search" model="ir.ui.view">
+        <field name="model">account.dashboard.banner.cell</field>
+        <field name="arch" type="xml">
+            <search string="KPI Dashboard Cells">
+                <field name="cell_type"/>
+                <field name="custom_label"/>
+                <separator/>
+                <filter name="active_kpis" string="Active in Dashboard" 
+                        domain="[('active_in_dashboard', '=', True)]"/>
+                <filter name="hidden_kpis" string="Hidden from Dashboard" 
+                        domain="[('active_in_dashboard', '=', False)]"/>
+                <separator/>
+                <filter name="with_warnings" string="With Warnings" 
+                        domain="[('warn', '=', True)]"/>
+                <filter name="with_click_action" string="With Click Action" 
+                        domain="[('click_action', '!=', 'none')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Category" name="group_category" context="{'group_by': 'category'}"/>
+                    <filter string="Click Action" name="group_click_action" context="{'group_by': 'click_action'}"/>
+                    <filter string="Active Status" name="group_active" context="{'group_by': 'active_in_dashboard'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+        <record id="account_dashboard_banner_cell_action" model="ir.actions.act_window">
+        <field name="name">KPI Dashboard Configuration</field>
+        <field name="res_model">account.dashboard.banner.cell</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure your KPI Dashboard!
+            </p>
+            <p>
+                Customize which KPIs appear on your dashboard, organize them by categories,
+                and configure click actions to navigate directly to related records.
+            </p>
+            <p>
+                <b>Tip:</b> Use the toggle to show/hide KPIs from the dashboard without deleting them.
+            </p>
+        </field>
+        <field name="context">{
+            'default_active_in_dashboard': True,
+            'default_category': 'financial'
+        }</field>
+    </record>
+
+    <menuitem id="account_dashboard_config" name="Dashboard" parent="account.menu_finance_configuration" sequence="200"/>
+
+    <menuitem id="account_dashboard_banner_cell_menu" action="account_dashboard_banner_cell_action" sequence="10" parent="account_dashboard_config"/>
+
+</odoo>

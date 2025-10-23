@@ -1,0 +1,185 @@
+/* Executive Dashboard - Opción Premium */
+.executive-dashboard {
+    min-height: 140px;
+    position: relative;
+    overflow: hidden;
+}
+
+.executive-dashboard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.1;
+}
+
+.executive-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+}
+
+.executive-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(31, 38, 135, 0.3);
+}
+
+.card-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.card-gradient-alert {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ff9a9e 0%, #fecfef 100%);
+    animation: gradient-alert 2s ease-in-out infinite alternate;
+}
+
+@keyframes gradient-alert {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.card-content {
+    padding: 1.5rem;
+    position: relative;
+}
+
+.icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 0.3s ease;
+}
+
+.executive-card:hover .icon-circle {
+    transform: rotate(5deg) scale(1.1);
+}
+
+/* Colores suaves para iconos */
+.bg-success-soft { background: rgba(40, 167, 69, 0.1); }
+.bg-danger-soft { background: rgba(220, 53, 69, 0.1); }
+.bg-primary-soft { background: rgba(0, 123, 255, 0.1); }
+.bg-info-soft { background: rgba(23, 162, 184, 0.1); }
+.bg-warning-soft { background: rgba(255, 193, 7, 0.1); }
+.bg-secondary-soft { background: rgba(108, 117, 125, 0.1); }
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #2c3e50;
+    line-height: 1;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    letter-spacing: -1px;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+}
+
+.trend-indicator {
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.executive-card:hover .trend-indicator {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.progress-decoration {
+    height: 4px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar-custom {
+    height: 100%;
+    width: 75%;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    border-radius: 2px;
+    position: relative;
+    animation: pulse-bar 3s ease-in-out infinite;
+}
+
+.progress-bar-alert {
+    height: 100%;
+    width: 85%;
+    background: linear-gradient(90deg, #ff9a9e 0%, #fecfef 100%);
+    border-radius: 2px;
+    animation: pulse-alert-bar 2s ease-in-out infinite;
+}
+
+@keyframes pulse-bar {
+    0%, 100% { opacity: 0.7; transform: scaleX(1); }
+    50% { opacity: 1; transform: scaleX(1.05); }
+}
+
+@keyframes pulse-alert-bar {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
+/* Alerta especial */
+.executive-card-alert {
+    background: rgba(255, 255, 255, 0.98);
+    animation: soft-glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes soft-glow {
+    0% { box-shadow: 0 8px 32px rgba(255, 193, 7, 0.2); }
+    100% { box-shadow: 0 8px 32px rgba(255, 193, 7, 0.4); }
+}
+
+.alert-pulse {
+    position: relative;
+}
+
+.pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ffc107;
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.5); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .metric-value { font-size: 1.5rem; }
+    .card-content { padding: 1rem; }
+    .icon-circle { width: 40px; height: 40px; font-size: 16px; }
+}

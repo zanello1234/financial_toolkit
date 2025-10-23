@@ -1,0 +1,113 @@
+/* Modern KPI Dashboard Cards */
+#dashboard_banner {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.kpi-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border-radius: 12px !important;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.kpi-card:hover .kpi-icon i {
+    opacity: 0.7 !important;
+    transform: scale(1.1);
+}
+
+.kpi-card:hover .accent-bar {
+    height: 4px !important;
+}
+
+.kpi-value {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 700 !important;
+}
+
+.kpi-label {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Colores específicos por tipo de KPI */
+.kpi-card:has(.fa-building) .accent-bar {
+    background: linear-gradient(90deg, #28a745, #20c997) !important;
+}
+
+.kpi-card:has(.fa-credit-card) .accent-bar {
+    background: linear-gradient(90deg, #dc3545, #fd7e14) !important;
+}
+
+.kpi-card:has(.fa-users) .accent-bar {
+    background: linear-gradient(90deg, #007bff, #6610f2) !important;
+}
+
+.kpi-card:has(.fa-truck) .accent-bar {
+    background: linear-gradient(90deg, #17a2b8, #6f42c1) !important;
+}
+
+.kpi-card:has(.fa-balance-scale) .accent-bar {
+    background: linear-gradient(90deg, #ffc107, #fd7e14) !important;
+}
+
+.kpi-card:has(.fa-chart-line) .accent-bar {
+    background: linear-gradient(90deg, #28a745, #20c997) !important;
+}
+
+.kpi-card:has(.fa-tint) .accent-bar {
+    background: linear-gradient(90deg, #17a2b8, #20c997) !important;
+}
+
+/* Animación de iconos */
+.kpi-icon i {
+    transition: all 0.3s ease;
+}
+
+/* Efectos de hover especiales */
+.kpi-card:hover .kpi-value {
+    color: #495057 !important;
+}
+
+/* Tarjetas con alertas */
+.kpi-card.border-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%) !important;
+    animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .kpi-card {
+        min-height: 70px !important;
+    }
+    
+    .kpi-value {
+        font-size: 1.2rem !important;
+    }
+    
+    .kpi-icon {
+        font-size: 20px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    #dashboard_banner {
+        flex-wrap: wrap;
+        gap: 10px !important;
+    }
+    
+    .kpi-card {
+        min-width: calc(50% - 5px);
+        min-height: 60px !important;
+    }
+}

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright 2025 Akretion France (https://www.akretion.com/)
+  @author: Alexis de Lattre <alexis.delattre@akretion.com>
+  License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+-->
+<templates xml:space="preserve">
+
+<t t-name="account_dashboard_banner.AccountDashboardBannerRenderer" t-inherit="account.DashboardKanbanRenderer" t-inherit-mode="primary">
+    <xpath expr="//div[hasclass('o_kanban_renderer')]" position="before">
+        <div class="minimalist-dashboard py-3 px-3" id="dashboard_banner">
+            <!-- Filtros por Categoría -->
+            <div class="category-filters mb-3">
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <h6 class="mb-0 text-muted fw-bold">KPI Dashboard</h6>
+                    <div class="filter-buttons d-flex gap-2 flex-wrap">
+                        <button class="btn btn-sm btn-outline-secondary active" data-category="all" onclick="filterKpisByCategory('all')">
+                            <i class="fa fa-list me-1"></i>All
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" data-category="financial" onclick="filterKpisByCategory('financial')">
+                            <i class="fa fa-chart-line me-1"></i>Financial
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" data-category="liquidity" onclick="filterKpisByCategory('liquidity')">
+                            <i class="fa fa-tint me-1"></i>Liquidity
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" data-category="receivables" onclick="filterKpisByCategory('receivables')">
+                            <i class="fa fa-users me-1"></i>Receivables
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" data-category="payables" onclick="filterKpisByCategory('payables')">
+                            <i class="fa fa-truck me-1"></i>Payables
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" data-category="aging" onclick="filterKpisByCategory('aging')">
+                            <i class="fa fa-clock-o me-1"></i>Aging
+                        </button>
+                        <button class="btn btn-sm btn-outline-dark" data-category="other" onclick="filterKpisByCategory('other')">
+                            <i class="fa fa-cogs me-1"></i>Other KPI
+                        </button>
+                        <button class="btn btn-sm btn-outline-purple" data-category="profitability" onclick="filterKpisByCategory('profitability')">
+                            <i class="fa fa-line-chart me-1"></i>Profitability
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" data-category="tax_credits_debts" onclick="filterKpisByCategory('tax_credits_debts')">
+                            <i class="fa fa-university me-1"></i>Tax Credits
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Grid de Métricas - Más Compacto -->
+            <div class="metrics-grid-compact">
+                <t t-foreach="Object.entries(state.banner)" t-as="cell_entry" t-key="cell_entry[0]">
+                    <t t-set="cell_data" t-value="cell_entry[1]"/>
+                    
+                    <!-- Solo mostrar KPIs activos en dashboard -->
+                    <t t-if="cell_data.active_in_dashboard !== false">
+                        
+                        <!-- Métrica con Sistema de Colores Avanzado -->
+                        <t t-set="warn_level" t-value="cell_data['warn_level'] || 'safe'"/>
+                        <t t-set="color_class" t-value="warn_level === 'danger' ? 'metric-danger' : warn_level === 'warning' ? 'metric-warning' : 'metric-safe'"/>
+                        <t t-set="indicator_class" t-value="warn_level === 'danger' ? 'bg-red-500 alert-pulse' : warn_level === 'warning' ? 'bg-yellow-500 warning-pulse' : 'bg-slate'"/>
+                        <t t-set="number_class" t-value="warn_level === 'danger' ? 'text-red-600' : warn_level === 'warning' ? 'text-yellow-600' : ''"/>
+                        <t t-set="title_class" t-value="warn_level === 'danger' ? 'text-red-700' : warn_level === 'warning' ? 'text-yellow-700' : ''"/>
+                        <t t-set="icon_class" t-value="warn_level === 'danger' ? 'fa-exclamation-triangle text-red-500' : warn_level === 'warning' ? 'fa-exclamation-circle text-yellow-500' : 'fa-bar-chart'"/>
+                        
+                        <div t-att-class="'metric-tile-compact ' + color_class" 
+                             t-att-data-tooltip="cell_data['tooltip']"
+                             t-att-data-kpi-type="cell_data['kpi_type']"
+                             t-att-data-kpi-id="cell_data['kpi_id']"
+                             t-att-data-click-action="cell_data['click_action']"
+                             t-att-data-action-domain="cell_data['action_domain']"
+                             t-att-data-category="cell_data['category']"
+                             t-att-data-warn-level="warn_level"
+                             t-att-onclick="cell_data['click_action'] !== 'none' and cell_data['click_action'] ? 'return navigateToKpiRecords(this);' : ''"
+                             t-att-style="cell_data['click_action'] !== 'none' and cell_data['click_action'] ? 'cursor: pointer;' : 'cursor: default;'">>
+                            
+                            <!-- Indicador visual superior con colores -->
+                            <div class="metric-indicator-compact">
+                                <div t-att-class="'indicator-dot-compact ' + indicator_class"></div>
+                            </div>
+                            
+                            <!-- Contenido de la métrica -->
+                            <div class="metric-content-compact">
+                                <div t-att-class="'metric-number-compact ' + number_class" t-out="cell_data['value']"></div>
+                                <div class="metric-header-compact">
+                                    <div t-att-class="'metric-title-compact ' + title_class" t-out="cell_data['label']"></div>
+                                    <button t-att-class="'btn-config-compact ' + (warn_level !== 'safe' ? 'btn-config-alert' : '')" 
+                                            t-att-data-kpi-id="cell_data['kpi_id']"
+                                            t-att-data-kpi-label="cell_data['label']"
+                                            onclick="return openKpiConfig(this);"
+                                            title="Configure KPI">
+                                        <i class="fa fa-cog"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Target Achievement Percentage -->
+                                <div t-if="cell_data['show_target_percentage']" class="target-achievement-compact">
+                                    <t t-set="percentage" t-value="cell_data['target_percentage'] || 0"/>
+                                    <t t-set="percentage_class" t-value="percentage >= 90 ? 'target-percentage-success' : percentage >= 70 ? 'target-percentage-warning' : 'target-percentage-danger'"/>
+                                    <span t-att-class="'target-percentage-compact ' + percentage_class" 
+                                          t-att-title="'Target: ' + cell_data['target_value_formatted']">
+                                        <t t-out="cell_data['target_percentage_formatted']"/> achieved
+                                    </span>
+                                </div>
+                                
+                                <!-- Mostrar información del nivel de warning si aplica -->
+                                <div t-if="cell_data['color_info'] and warn_level !== 'safe'" class="warning-level-info-compact">
+                                    <small t-att-class="'text-' + (warn_level === 'danger' ? 'red' : 'yellow') + '-600'" 
+                                           t-out="cell_data['color_info']['description']"></small>
+                                </div>
+                                
+                                <!-- Mostrar rango histórico si está configurado -->
+                                <div t-if="cell_data['show_historical_range']" class="historical-range-compact">
+                                    <div class="range-label">Historical Range:</div>
+                                    <div class="range-values">
+                                        <span class="range-min" t-out="'Min: ' + cell_data['historical_min_formatted']"></span>
+                                        <span class="range-max" t-out="'Max: ' + cell_data['historical_max_formatted']"></span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mostrar configuración de warning si está habilitada -->
+                                <div t-if="cell_data['warn_config']" class="warning-config-compact">
+                                    <div class="warning-label">Warning Thresholds:</div>
+                                    <div t-att-class="'warning-type ' + (warn_level !== 'safe' ? 'warning-type-alert' : '')" 
+                                         t-out="cell_data['warn_config']['warn_type_label']"></div>
+                                    <div class="warning-values">
+                                        <span t-att-class="'warning-min ' + (warn_level !== 'safe' ? 'warning-alert' : '')" 
+                                              t-out="'Min: ' + cell_data['warn_config']['warn_min_formatted']"></span>
+                                        <span t-att-class="'warning-max ' + (warn_level !== 'safe' ? 'warning-alert' : '')" 
+                                              t-out="'Max: ' + cell_data['warn_config']['warn_max_formatted']"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Botón CTA para actividades -->
+                            <div class="metric-cta-compact">
+                                <button t-att-class="'btn-activity-compact ' + (warn_level !== 'safe' ? 'btn-activity-alert' : '')" 
+                                        t-att-data-kpi-id="cell_data['kpi_id']"
+                                        t-att-data-kpi-label="cell_data['label']"
+                                        onclick="return openActivityForm(this);"
+                                        title="Create follow-up activity">
+                                    <i class="fa fa-calendar-plus"></i>
+                                    <span>Follow-up</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Icono con colores -->
+                            <div class="metric-icon-compact">
+                                <i t-att-class="'fa ' + icon_class"></i>
+                                
+                                <!-- Icono de click si es clickeable -->
+                                <i t-if="cell_data['click_action'] !== 'none' and cell_data['click_action']" 
+                                   class="fa fa-external-link click-indicator"></i>
+                            </div>
+                        </div>
+                        
+                    </t>
+                </t>
+            </div>
+        </div>
+    </xpath>
+</t>
+
+</templates>

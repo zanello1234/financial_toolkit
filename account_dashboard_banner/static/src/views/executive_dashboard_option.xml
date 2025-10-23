@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OPCIÓN 2: Dashboard Ejecutivo Elegante
+  Diseño premium con tarjetas grandes y efectos visuales
+-->
+<templates xml:space="preserve">
+
+<t t-name="account_dashboard_banner.ExecutiveDashboard" t-inherit="account.DashboardKanbanRenderer" t-inherit-mode="primary">
+    <xpath expr="//div[hasclass('o_kanban_renderer')]" position="before">
+        <div class="executive-dashboard p-4" id="dashboard_banner" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="row g-3">
+                <t t-foreach="Object.entries(state.banner)" t-as="cell_entry" t-key="cell_entry[0]">
+                    <t t-set="cell_data" t-value="cell_entry[1]"/>
+                    <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                        
+                        <!-- Tarjeta Ejecutiva Normal -->
+                        <div t-if="!cell_data.warn" class="executive-card h-100" 
+                             t-att-data-tooltip="cell_data['tooltip']">
+                            <div class="card-gradient"></div>
+                            <div class="card-content">
+                                
+                                <!-- Header con icono -->
+                                <div class="card-header-exec d-flex align-items-center justify-content-between mb-2">
+                                    <div class="metric-icon">
+                                        <div t-if="cell_data.label.includes('Assets') or cell_data.label.includes('Activo')" 
+                                             class="icon-circle bg-success-soft">
+                                            <i class="fas fa-building text-success"></i>
+                                        </div>
+                                        <div t-elif="cell_data.label.includes('Liabilities') or cell_data.label.includes('Pasivo')" 
+                                             class="icon-circle bg-danger-soft">
+                                            <i class="fas fa-credit-card text-danger"></i>
+                                        </div>
+                                        <div t-elif="cell_data.label.includes('Customer') or cell_data.label.includes('Cliente')" 
+                                             class="icon-circle bg-primary-soft">
+                                            <i class="fas fa-users text-primary"></i>
+                                        </div>
+                                        <div t-elif="cell_data.label.includes('Supplier') or cell_data.label.includes('Proveedor')" 
+                                             class="icon-circle bg-info-soft">
+                                            <i class="fas fa-truck text-info"></i>
+                                        </div>
+                                        <div t-elif="cell_data.label.includes('Ratio')" 
+                                             class="icon-circle bg-warning-soft">
+                                            <i class="fas fa-balance-scale text-warning"></i>
+                                        </div>
+                                        <div t-elif="cell_data.label.includes('Income') or cell_data.label.includes('Ingreso')" 
+                                             class="icon-circle bg-success-soft">
+                                            <i class="fas fa-chart-line text-success"></i>
+                                        </div>
+                                        <div t-elif="cell_data.label.includes('Liquidity')" 
+                                             class="icon-circle bg-info-soft">
+                                            <i class="fas fa-tint text-info"></i>
+                                        </div>
+                                        <div t-else="1" class="icon-circle bg-secondary-soft">
+                                            <i class="fas fa-chart-bar text-secondary"></i>
+                                        </div>
+                                    </div>
+                                    <div class="trend-indicator">
+                                        <i class="fas fa-arrow-up text-success small"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Valor principal -->
+                                <div class="metric-value mb-1" t-out="cell_data['value']"></div>
+                                
+                                <!-- Etiqueta -->
+                                <div class="metric-label" t-out="cell_data['label']"></div>
+                                
+                                <!-- Progress bar decorativo -->
+                                <div class="progress-decoration mt-2">
+                                    <div class="progress-bar-custom"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tarjeta Ejecutiva con Alerta -->
+                        <div t-if="cell_data.warn" class="executive-card executive-card-alert h-100" 
+                             t-att-data-tooltip="cell_data['tooltip']">
+                            <div class="card-gradient-alert"></div>
+                            <div class="card-content">
+                                
+                                <!-- Header con icono de alerta -->
+                                <div class="card-header-exec d-flex align-items-center justify-content-between mb-2">
+                                    <div class="metric-icon">
+                                        <div class="icon-circle bg-warning-soft">
+                                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                                        </div>
+                                    </div>
+                                    <div class="alert-pulse">
+                                        <span class="pulse-dot"></span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Valor principal -->
+                                <div class="metric-value text-warning mb-1" t-out="cell_data['value']"></div>
+                                
+                                <!-- Etiqueta -->
+                                <div class="metric-label text-warning" t-out="cell_data['label']"></div>
+                                
+                                <!-- Progress bar de alerta -->
+                                <div class="progress-decoration mt-2">
+                                    <div class="progress-bar-alert"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </xpath>
+</t>
+
+</templates>
