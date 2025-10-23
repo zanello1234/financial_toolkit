@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Inventory Adjustment Custom Account',
-    'version': '17.0.1.0.0',
+    'version': '18.0.1.0.0',
     'category': 'Inventory/Inventory',
     'summary': 'Allows select  ing a specific account for inventory adjustments.',
     'description': """
@@ -48,4 +48,5 @@ This module extends Odoo's standard inventory adjustment functionality by allowi
     'application': False,
     'auto_install': False,
     'license': 'LGPL-3', # O la licencia que prefieras/necesites
+
 }
