@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Inventory Adjustment Custom Account',
-    'version': '17.0.1.0.0',
+    'version': '18.0.1.0.0',
     'category': 'Inventory/Inventory',
-    'summary': 'Allows select  ing a specific account for inventory adjustments.',
+    'summary': 'Allows selecting a specific account for inventory adjustments.',
     'description': """
 # Inventory Adjustment Custom Account
 
@@ -16,7 +16,7 @@ This module extends Odoo's standard inventory adjustment functionality by allowi
 - Add a custom account field to inventory adjustment lines
 - Override the standard accounting behavior to use the selected custom account
 - Maintain detailed accounting records with specific accounts for different types of adjustments
-- Compatible with Odoo 17.0 (modified for the new view attribute system)
+- Compatible with Odoo 18.0
 
 ## Installation
 
