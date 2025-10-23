@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OPCIÓN 3: Diseño Minimalista Elegante
+  Estilo limpio y profesional con tipografía moderna
+-->
+<templates xml:space="preserve">
+
+<t t-name="account_dashboard_banner.MinimalistDashboard" t-inherit="account.DashboardKanbanRenderer" t-inherit-mode="primary">
+    <xpath expr="//div[hasclass('o_kanban_renderer')]" position="before">
+        <div class="minimalist-dashboard py-4 px-3" id="dashboard_banner">
+            <div class="metrics-grid">
+                <t t-foreach="Object.entries(state.banner)" t-as="cell_entry" t-key="cell_entry[0]">
+                    <t t-set="cell_data" t-value="cell_entry[1]"/>
+                    
+                    <!-- Métrica Normal -->
+                    <div t-if="!cell_data.warn" class="metric-tile" 
+                         t-att-data-tooltip="cell_data['tooltip']">
+                        
+                        <!-- Indicador visual superior -->
+                        <div class="metric-indicator">
+                            <div t-if="cell_data.label.includes('Assets') or cell_data.label.includes('Activo')" 
+                                 class="indicator-dot bg-emerald"></div>
+                            <div t-elif="cell_data.label.includes('Liabilities') or cell_data.label.includes('Pasivo')" 
+                                 class="indicator-dot bg-rose"></div>
+                            <div t-elif="cell_data.label.includes('Customer') or cell_data.label.includes('Cliente')" 
+                                 class="indicator-dot bg-blue"></div>
+                            <div t-elif="cell_data.label.includes('Supplier') or cell_data.label.includes('Proveedor')" 
+                                 class="indicator-dot bg-cyan"></div>
+                            <div t-elif="cell_data.label.includes('Ratio')" 
+                                 class="indicator-dot bg-amber"></div>
+                            <div t-elif="cell_data.label.includes('Income')" 
+                                 class="indicator-dot bg-emerald"></div>
+                            <div t-elif="cell_data.label.includes('Liquidity')" 
+                                 class="indicator-dot bg-cyan"></div>
+                            <div t-else="1" class="indicator-dot bg-slate"></div>
+                        </div>
+                        
+                        <!-- Contenido de la métrica -->
+                        <div class="metric-content">
+                            <div class="metric-number" t-out="cell_data['value']"></div>
+                            <div class="metric-title" t-out="cell_data['label']"></div>
+                        </div>
+                        
+                        <!-- Icono sutil -->
+                        <div class="metric-icon-subtle">
+                            <i t-if="cell_data.label.includes('Assets')" class="lucide lucide-building-2"></i>
+                            <i t-elif="cell_data.label.includes('Liabilities')" class="lucide lucide-credit-card"></i>
+                            <i t-elif="cell_data.label.includes('Customer')" class="lucide lucide-users"></i>
+                            <i t-elif="cell_data.label.includes('Supplier')" class="lucide lucide-truck"></i>
+                            <i t-elif="cell_data.label.includes('Ratio')" class="lucide lucide-scale"></i>
+                            <i t-elif="cell_data.label.includes('Income')" class="lucide lucide-trending-up"></i>
+                            <i t-elif="cell_data.label.includes('Liquidity')" class="lucide lucide-droplet"></i>
+                            <i t-else="1" class="lucide lucide-bar-chart-3"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Métrica con Alerta -->
+                    <div t-if="cell_data.warn" class="metric-tile metric-tile-alert" 
+                         t-att-data-tooltip="cell_data['tooltip']">
+                        
+                        <!-- Indicador de alerta -->
+                        <div class="metric-indicator">
+                            <div class="indicator-dot bg-amber alert-pulse"></div>
+                        </div>
+                        
+                        <!-- Contenido de la métrica -->
+                        <div class="metric-content">
+                            <div class="metric-number text-amber-600" t-out="cell_data['value']"></div>
+                            <div class="metric-title text-amber-700" t-out="cell_data['label']"></div>
+                        </div>
+                        
+                        <!-- Icono de alerta -->
+                        <div class="metric-icon-subtle text-amber-500">
+                            <i class="lucide lucide-alert-triangle"></i>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </xpath>
+</t>
+
+</templates>
