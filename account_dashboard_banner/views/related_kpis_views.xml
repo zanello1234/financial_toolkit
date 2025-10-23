@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Vista de formulario para mostrar KPIs relacionados -->
+    <record id="view_related_kpis_form" model="ir.ui.view">
+        <field name="name">related.kpis.form</field>
+        <field name="model">account.dashboard.banner.cell</field>
+        <field name="arch" type="xml">
+            <form string="Related KPIs" create="false" edit="false">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="display_name" class="oe_edit_only"/>
+                        <h1><field name="display_name"/></h1>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="cell_type"/>
+                            <field name="custom_label"/>
+                        </group>
+                        <group>
+                            <field name="sequence"/>
+                        </group>
+                    </group>
+                    
+                    <!-- KPIs que componen este KPI (si es operación matemática) -->
+                    <div invisible="cell_type != 'kpi_math_operation'">
+                        <separator string="📊 This KPI is composed of:"/>
+                        <div class="alert alert-info" style="margin: 8px 0;">
+                            <strong>Mathematical Operation:</strong> This KPI performs a calculation using other KPIs
+                        </div>
+                        <group col="2">
+                            <field name="kpi_operand_a_id" readonly="1" 
+                                   context="{'tree_view_ref': 'account_dashboard_banner.view_account_dashboard_banner_cell_tree'}"/>
+                            <field name="kpi_operand_b_id" readonly="1"
+                                   context="{'tree_view_ref': 'account_dashboard_banner.view_account_dashboard_banner_cell_tree'}"/>
+                        </group>
+                        <group>
+                            <field name="math_operation" readonly="1"/>
+                            <field name="math_result_format" readonly="1"/>
+                        </group>
+                    </div>
+                    
+                    <!-- Información adicional para KPIs simples -->
+                    <div invisible="cell_type == 'kpi_math_operation'">
+                        <separator string="📈 KPI Information"/>
+                        <div class="alert alert-success" style="margin: 8px 0;">
+                            <strong>Base KPI:</strong> This is a fundamental metric calculated from accounting data
+                        </div>
+                        <group>
+                            <field name="cell_type" readonly="1"/>
+                        </group>
+                    </div>
+                    
+                    <!-- Botón para ver KPIs que usan este KPI -->
+                    <div class="oe_button_box" style="margin-top: 16px;">
+                        <button name="action_view_dependent_kpis" 
+                                type="object" 
+                                class="oe_stat_button" 
+                                icon="fa-sitemap"
+                                string="View KPIs using this metric"/>
+                    </div>
+                    
+                    <!-- Información de ayuda -->
+                    <div class="alert alert-light" style="margin-top: 16px;">
+                        <h5><i class="fa fa-lightbulb-o"></i> How KPI Relationships Work:</h5>
+                        <ul>
+                            <li><strong>Mathematical KPIs</strong> combine two or more base KPIs using operations like division, multiplication, etc.</li>
+                            <li><strong>Base KPIs</strong> are calculated directly from your accounting data</li>
+                            <li><strong>Dependencies</strong> mean that changes in base KPIs will affect calculated KPIs</li>
+                        </ul>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Acción para mostrar KPIs relacionados -->
+    <record id="action_view_related_kpis" model="ir.actions.act_window">
+        <field name="name">Related KPIs</field>
+        <field name="res_model">account.dashboard.banner.cell</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_related_kpis_form"/>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

@@ -3,7 +3,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 {
-    "name": "Account Dashboard Banner",
+    "name": "Account Dashboard Banner by only one",
     "version": "18.0.1.5.0",
     "category": "Accounting",
     "license": "AGPL-3",
@@ -17,11 +17,14 @@
         "security/ir.model.access.csv",
         "views/account_journal_dashboard.xml",
         "views/account_dashboard_banner_cell.xml",
+        "views/related_kpis_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
             "account_dashboard_banner/static/src/views/account_dashboard_kanban_banner.esm.js",
             "account_dashboard_banner/static/src/views/account_dashboard_kanban_banner.xml",
+            "account_dashboard_banner/static/src/views/related_kpis_dialog.xml",
+            "account_dashboard_banner/static/src/js/related_kpis.js",
             "account_dashboard_banner/static/src/css/minimalist_dashboard.css",
         ],
     },

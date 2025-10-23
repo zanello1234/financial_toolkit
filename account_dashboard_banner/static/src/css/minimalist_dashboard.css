@@ -779,6 +779,88 @@
     margin-right: 0.4rem;
 }
 
+/* === KPI ACTIONS CONTAINER === */
+.kpi-actions-compact {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* === RELATED KPI BUTTON STYLES === */
+.btn-related-compact {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    font-size: 0.6rem;
+    color: #059669;
+    background: rgba(5, 150, 105, 0.1);
+    border: 1px solid rgba(5, 150, 105, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-related-compact:hover {
+    background: rgba(5, 150, 105, 0.15);
+    border-color: rgba(5, 150, 105, 0.3);
+    color: #047857;
+    transform: scale(1.1);
+}
+
+.btn-related-compact:active {
+    transform: scale(0.95);
+}
+
+/* === RELATED KPIs HIGHLIGHTING === */
+.kpi-related-highlight {
+    border: 2px solid #10b981 !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    transform: scale(1.02);
+    animation: kpiRelatedPulse 2s infinite;
+}
+
+.kpi-main-highlight {
+    border: 2px solid #3b82f6 !important;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
+    transform: scale(1.05);
+    animation: kpiMainPulse 2s infinite;
+}
+
+@keyframes kpiRelatedPulse {
+    0% { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+    50% { box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5); }
+    100% { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+}
+
+@keyframes kpiMainPulse {
+    0% { box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+    50% { box-shadow: 0 8px 24px rgba(59, 130, 246, 0.6); }
+    100% { box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+}
+
+/* === RELATED KPIs HEADER === */
+.related-kpis-header {
+    border-radius: 8px;
+    margin: 16px 0 !important;
+    border-left: 4px solid #10b981;
+    background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+    animation: slideInDown 0.3s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* === CONFIG BUTTON STYLES === */
 .btn-config-compact {
     display: inline-flex;
@@ -820,11 +902,16 @@
     color: #b45309;
 }
 
-/* Responsive adjustments for config button */
+/* Responsive adjustments for buttons */
 @media (max-width: 768px) {
-    .btn-config-compact {
+    .btn-config-compact,
+    .btn-related-compact {
         width: 16px;
         height: 16px;
         font-size: 0.55rem;
+    }
+    
+    .kpi-actions-compact {
+        gap: 1px;
     }
 }

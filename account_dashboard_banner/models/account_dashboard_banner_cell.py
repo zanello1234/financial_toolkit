@@ -32,8 +32,6 @@ class AccountDashboardBannerCell(models.Model):
             ("supplier_debt", "Supplier Debt"),
             ("total_assets", "Total Assets"),
             ("total_liabilities", "Total Liabilities"),
-            # Ratios financieros
-            ("receivable_payable_ratio", "Receivable/Payable Ratio"),
             # Indicadores de antigüedad
             ("oldest_customer_invoice", "Oldest Overdue Customer Invoice (days)"),
             ("oldest_supplier_invoice", "Oldest Overdue Supplier Invoice (days)"),
@@ -49,6 +47,15 @@ class AccountDashboardBannerCell(models.Model):
             ("account_balance", "Account Balance"),
             # KPI con operaciones matemáticas entre otros KPIs
             ("kpi_math_operation", "Mathematical Operation Between KPIs"),
+            # KPIs de Rentabilidad
+            ("ebit", "EBIT (Earnings Before Interest and Taxes)"),
+            ("ebit_ratio", "EBIT Ratio (%)"),
+            ("gross_income", "Gross Income"),
+            ("nopat", "NOPAT (Net Operating Profit After Tax)"),
+            # Ratios Financieros
+            ("receivable_payable_ratio", "Receivable to Payable Ratio"),
+            ("cost_income_ratio", "Cost to Income Ratio (%)"),
+            ("ebit_assets_ratio", "EBIT to Assets Ratio (%)"),
             # Créditos y Deudas Fiscales
             ("vat_credit_balance", "VAT Credits Balance"),
             ("vat_debt_balance", "VAT Debts Balance"),
@@ -85,6 +92,7 @@ class AccountDashboardBannerCell(models.Model):
         ('performance', 'Performance Metrics'),
         ('aging', 'Aging Analysis'),
         ('profitability', 'Profitability Ratios'),
+        ('ratios', 'Financial Ratios'),
         ('tax_credits_debts', 'Tax Credits & Fiscal Debts'),
         ('lock_dates', 'Lock Dates'),
         ('other', 'Other KPIs'),
@@ -1116,9 +1124,9 @@ Traceback: {traceback.format_exc()}
                 format_amount(self.env, gross_margin, company.currency_id),
                 format_amount(self.env, revenue, company.currency_id),
                 ratio
-            )
+            ), ratio
         
-        return None, None, None, _("No sales to calculate gross margin ratio")
+        return None, None, None, _("No sales to calculate gross margin ratio"), 0
 
     def _prepare_cell_data_operating_expenses_sales_ratio(self, company, speedy):
         """Calculate Operating Expenses / Sales Ratio"""
@@ -1162,9 +1170,9 @@ Traceback: {traceback.format_exc()}
                 format_amount(self.env, operating_expenses, company.currency_id),
                 format_amount(self.env, revenue, company.currency_id),
                 ratio
-            )
+            ), ratio
         
-        return None, None, None, _("No sales to calculate operating expenses ratio")
+        return None, None, None, _("No sales to calculate operating expenses ratio"), 0
 
     def _prepare_cell_data_costs_sales_ratio(self, company, speedy):
         """Calculate Cost of Revenue / Sales Ratio"""
@@ -1205,9 +1213,9 @@ Traceback: {traceback.format_exc()}
                 format_amount(self.env, cost_of_revenue, company.currency_id),
                 format_amount(self.env, revenue, company.currency_id),
                 ratio
-            )
+            ), ratio
         
-        return None, None, None, _("No sales to calculate cost of revenue ratio")
+        return None, None, None, _("No sales to calculate cost of revenue ratio"), 0
 
     def _prepare_cell_data_cost_income_ratio(self, company, speedy):
         """Calculate Cost of Good Sold / Income Ratio"""
@@ -1714,7 +1722,7 @@ Traceback: {traceback.format_exc()}
         else:
             accounts = False
             # Handle special cases first
-            if cell_type in ['oldest_customer_invoice', 'oldest_supplier_invoice', 'receivable_payable_ratio', 'customer_invoices_count', 'supplier_bills_count', 'cost_income_ratio', 'kpi_math_operation', 'unreconciled_receivables_count', 'unreconciled_payables_count', 'unreconciled_bank_count', 'unreconciled_items_count', 'vat_credit_balance', 'vat_debt_balance', 'tax_withholdings_balance', 'social_security_debt', 'income_tax_provision', 'pending_tax_refunds', 'tax_credits_vs_debts_ratio']:
+            if cell_type in ['oldest_customer_invoice', 'oldest_supplier_invoice', 'receivable_payable_ratio', 'customer_invoices_count', 'supplier_bills_count', 'cost_income_ratio', 'kpi_math_operation', 'unreconciled_receivables_count', 'unreconciled_payables_count', 'unreconciled_bank_count', 'unreconciled_items_count', 'vat_credit_balance', 'vat_debt_balance', 'tax_withholdings_balance', 'social_security_debt', 'income_tax_provision', 'pending_tax_refunds', 'tax_credits_vs_debts_ratio', 'ebit', 'ebit_ratio', 'gross_income', 'nopat', 'ebit_assets_ratio']:
                 specific_method = getattr(self, f"_prepare_cell_data_{cell_type}")
                 accounts, sign, specific_domain, specific_tooltip, raw_value = specific_method(
                     company, speedy
@@ -1734,6 +1742,10 @@ Traceback: {traceback.format_exc()}
                     value = f"{raw_value:.2f}" if raw_value else "0.00"
                 elif cell_type in ['vat_credit_balance', 'vat_debt_balance', 'tax_withholdings_balance', 'social_security_debt', 'income_tax_provision', 'pending_tax_refunds']:
                     value = format_amount(self.env, raw_value, company.currency_id) if raw_value else format_amount(self.env, 0, company.currency_id)
+                elif cell_type in ['ebit', 'gross_income', 'nopat']:
+                    value = format_amount(self.env, raw_value, company.currency_id) if raw_value else format_amount(self.env, 0, company.currency_id)
+                elif cell_type in ['ebit_ratio', 'ebit_assets_ratio']:
+                    value = f"{raw_value:.1f}%" if raw_value else "0.0%"
                 tooltip = specific_tooltip
             elif hasattr(self, f"_prepare_cell_data_{cell_type}"):
                 specific_method = getattr(self, f"_prepare_cell_data_{cell_type}")
@@ -2353,48 +2365,291 @@ Traceback: {traceback.format_exc()}
                     
             cell.display_name = display_name
 
+    def get_related_kpis(self):
+        """Get all KPIs related to this KPI (used in mathematical operations)"""
+        self.ensure_one()
+        related_kpis = []
+        
+        # If this is a mathematical operation KPI, get its operands
+        if self.cell_type == 'kpi_math_operation':
+            if self.kpi_operand_a_id:
+                related_kpis.append(self.kpi_operand_a_id)
+                # Recursively get related KPIs of operands
+                related_kpis.extend(self.kpi_operand_a_id.get_related_kpis())
+            if self.kpi_operand_b_id:
+                related_kpis.append(self.kpi_operand_b_id)
+                # Recursively get related KPIs of operands
+                related_kpis.extend(self.kpi_operand_b_id.get_related_kpis())
+        
+        # Also find KPIs that use this KPI as operand
+        kpis_using_this = self.env['account.dashboard.banner.cell'].search([
+            ('cell_type', '=', 'kpi_math_operation'),
+            '|', 
+            ('kpi_operand_a_id', '=', self.id),
+            ('kpi_operand_b_id', '=', self.id)
+        ])
+        related_kpis.extend(kpis_using_this)
+        
+        # Remove duplicates and self
+        unique_kpis = []
+        seen_ids = set()
+        for kpi in related_kpis:
+            if kpi.id not in seen_ids and kpi.id != self.id:
+                unique_kpis.append(kpi)
+                seen_ids.add(kpi.id)
+        
+        return unique_kpis
+
+    def get_related_kpi_ids(self):
+        """Get IDs of related KPIs for JavaScript consumption"""
+        self.ensure_one()
+        related_kpis = self.get_related_kpis()
+        return [kpi.id for kpi in related_kpis]
+
+    # === MISSING KPI CALCULATION METHODS ===
+    
     def _prepare_cell_data_receivable_payable_ratio(self, company, speedy):
-        """Calculate Receivable / Payable Ratio"""
-        # Get receivable accounts
-        receivable_accounts = (
-            self.env["res.partner"]
-            ._fields["property_account_receivable_id"]
-            .get_company_dependent_fallback(self.env["res.partner"])
-        )
-        
-        # Get payable accounts
-        payable_accounts = (
-            self.env["res.partner"]
-            ._fields["property_account_payable_id"]
-            .get_company_dependent_fallback(self.env["res.partner"])
-        )
-        
+        """Calculate Receivable to Payable Ratio"""
         domain_base = [
             ("company_id", "=", company.id),
             ("date", "<=", speedy["today"]),
             ("parent_state", "=", "posted"),
         ]
         
-        # Calculate receivables
+        # Receivables (Customer Debt)
+        receivable_accounts = self.env["account.account"].with_company(company).search([
+            ("account_type", "=", "asset_receivable"),
+        ])
         receivable_domain = domain_base + [("account_id", "in", receivable_accounts.ids)]
         receivable_rg = self.env["account.move.line"]._read_group(
             receivable_domain, aggregates=["balance:sum"]
         )
-        receivables = abs(receivable_rg and receivable_rg[0][0] or 0)
+        receivables = receivable_rg and receivable_rg[0][0] or 0
         
-        # Calculate payables
+        # Payables (Supplier Debt)
+        payable_accounts = self.env["account.account"].with_company(company).search([
+            ("account_type", "=", "liability_payable"),
+        ])
         payable_domain = domain_base + [("account_id", "in", payable_accounts.ids)]
         payable_rg = self.env["account.move.line"]._read_group(
             payable_domain, aggregates=["balance:sum"]
         )
         payables = abs(payable_rg and payable_rg[0][0] or 0)
         
+        # Calculate ratio
         if payables > 0:
             ratio = receivables / payables
+            value = f"{ratio:.2f}"
         else:
             ratio = 0
+            value = "N/A"
         
         tooltip = f"Receivables: {format_amount(self.env, receivables, company.currency_id)}\n" \
                   f"Payables: {format_amount(self.env, payables, company.currency_id)}"
         
         return None, None, None, tooltip, ratio
+    
+    def _prepare_cell_data_ebit(self, company, speedy):
+        """Calculate EBIT (Earnings Before Interest and Taxes)"""
+        domain_base = [
+            ("company_id", "=", company.id),
+            ("date", ">=", speedy.get("fy_start_date", company.fiscalyear_lock_date or speedy["today"])),
+            ("date", "<=", speedy["today"]),
+            ("parent_state", "=", "posted"),
+        ]
+        
+        # Revenue
+        revenue_accounts = self.env["account.account"].with_company(company).search([
+            ("account_type", "in", ["income", "income_other"]),
+        ])
+        revenue_domain = domain_base + [("account_id", "in", revenue_accounts.ids)]
+        revenue_rg = self.env["account.move.line"]._read_group(
+            revenue_domain, aggregates=["balance:sum"]
+        )
+        revenue = abs(revenue_rg and revenue_rg[0][0] or 0)
+        
+        # Operating expenses (excluding interest and taxes)
+        expense_accounts = self.env["account.account"].with_company(company).search([
+            ("account_type", "in", ["expense", "expense_direct_cost", "expense_depreciation"]),
+        ])
+        expense_domain = domain_base + [("account_id", "in", expense_accounts.ids)]
+        expense_rg = self.env["account.move.line"]._read_group(
+            expense_domain, aggregates=["balance:sum"]
+        )
+        expenses = expense_rg and expense_rg[0][0] or 0
+        
+        ebit = revenue - abs(expenses)
+        
+        tooltip = f"Revenue: {format_amount(self.env, revenue, company.currency_id)}\n" \
+                  f"Operating Expenses: {format_amount(self.env, abs(expenses), company.currency_id)}"
+        
+        return None, None, None, tooltip, ebit
+    
+    def _prepare_cell_data_ebit_ratio(self, company, speedy):
+        """Calculate EBIT Ratio (EBIT / Revenue * 100)"""
+        # Get EBIT - call the method directly with proper return values
+        _, _, _, _, ebit = self._prepare_cell_data_ebit(company, speedy)
+        
+        # Get Revenue
+        domain_base = [
+            ("company_id", "=", company.id),
+            ("date", ">=", speedy.get("fy_start_date", company.fiscalyear_lock_date or speedy["today"])),
+            ("date", "<=", speedy["today"]),
+            ("parent_state", "=", "posted"),
+        ]
+        
+        revenue_accounts = self.env["account.account"].with_company(company).search([
+            ("account_type", "in", ["income", "income_other"]),
+        ])
+        revenue_domain = domain_base + [("account_id", "in", revenue_accounts.ids)]
+        revenue_rg = self.env["account.move.line"]._read_group(
+            revenue_domain, aggregates=["balance:sum"]
+        )
+        revenue = abs(revenue_rg and revenue_rg[0][0] or 0)
+        
+        if revenue > 0:
+            ratio = (ebit / revenue) * 100
+        else:
+            ratio = 0
+        
+        tooltip = f"EBIT: {format_amount(self.env, ebit, company.currency_id)}\n" \
+                  f"Revenue: {format_amount(self.env, revenue, company.currency_id)}"
+        
+        return None, None, None, tooltip, ratio
+    
+    def _prepare_cell_data_gross_income(self, company, speedy):
+        """Calculate Gross Income (Revenue - Cost of Goods Sold)"""
+        domain_base = [
+            ("company_id", "=", company.id),
+            ("date", ">=", speedy.get("fy_start_date", company.fiscalyear_lock_date or speedy["today"])),
+            ("date", "<=", speedy["today"]),
+            ("parent_state", "=", "posted"),
+        ]
+        
+        # Revenue
+        revenue_accounts = self.env["account.account"].with_company(company).search([
+            ("account_type", "in", ["income", "income_other"]),
+        ])
+        revenue_domain = domain_base + [("account_id", "in", revenue_accounts.ids)]
+        revenue_rg = self.env["account.move.line"]._read_group(
+            revenue_domain, aggregates=["balance:sum"]
+        )
+        revenue = abs(revenue_rg and revenue_rg[0][0] or 0)
+        
+        # Cost of Goods Sold
+        cogs_accounts = self.env["account.account"].with_company(company).search([
+            ("account_type", "=", "expense_direct_cost"),
+        ])
+        cogs_domain = domain_base + [("account_id", "in", cogs_accounts.ids)]
+        cogs_rg = self.env["account.move.line"]._read_group(
+            cogs_domain, aggregates=["balance:sum"]
+        )
+        cogs = cogs_rg and cogs_rg[0][0] or 0
+        
+        gross_income = revenue - abs(cogs)
+        
+        tooltip = f"Revenue: {format_amount(self.env, revenue, company.currency_id)}\n" \
+                  f"COGS: {format_amount(self.env, abs(cogs), company.currency_id)}"
+        
+        return None, None, None, tooltip, gross_income
+    
+    def _prepare_cell_data_nopat(self, company, speedy):
+        """Calculate NOPAT (Net Operating Profit After Tax)"""
+        # Get EBIT - call the method directly with proper return values
+        _, _, _, _, ebit = self._prepare_cell_data_ebit(company, speedy)
+        
+        # Estimate tax rate (simplified calculation)
+        # In a real implementation, you might want to use actual tax accounts
+        estimated_tax_rate = 0.25  # 25% default tax rate
+        
+        nopat = ebit * (1 - estimated_tax_rate)
+        
+        tooltip = f"EBIT: {format_amount(self.env, ebit, company.currency_id)}\n" \
+                  f"Tax Rate: {estimated_tax_rate*100:.1f}%"
+        
+        return None, None, None, tooltip, nopat
+    
+    def _prepare_cell_data_ebit_assets_ratio(self, company, speedy):
+        """Calculate EBIT to Assets Ratio"""
+        # Get EBIT - call the method directly with proper return values
+        _, _, _, _, ebit = self._prepare_cell_data_ebit(company, speedy)
+        
+        # Calculate Total Assets directly
+        domain_base = [
+            ("company_id", "=", company.id),
+            ("date", ">=", speedy.get("fy_start_date", company.fiscalyear_lock_date or speedy["today"])),
+            ("date", "<=", speedy["today"]),
+            ("parent_state", "=", "posted"),
+        ]
+        
+        # Get all asset accounts
+        asset_accounts = self.env["account.account"].with_company(company).search([
+            ("account_type", "in", ["asset_receivable", "asset_cash", "asset_current", "asset_non_current", "asset_prepayments", "asset_fixed"]),
+        ])
+        
+        # Calculate total assets balance
+        assets_domain = domain_base + [("account_id", "in", asset_accounts.ids)]
+        assets_rg = self.env["account.move.line"]._read_group(
+            assets_domain, aggregates=["balance:sum"]
+        )
+        total_assets = assets_rg and assets_rg[0][0] or 0
+        
+        if total_assets > 0:
+            ratio = (ebit / total_assets) * 100
+        else:
+            ratio = 0
+        
+        tooltip = f"EBIT: {format_amount(self.env, ebit, company.currency_id)}\n" \
+                  f"Total Assets: {format_amount(self.env, total_assets, company.currency_id)}"
+        
+        return None, None, None, tooltip, ratio
+
+    def action_view_related_kpis(self):
+        """Action to view related KPIs in a form"""
+        self.ensure_one()
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Related KPIs: %s') % self.display_name,
+            'res_model': 'account.dashboard.banner.cell',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'view_id': self.env.ref('account_dashboard_banner.view_related_kpis_form').id,
+            'target': 'new',
+            'context': {
+                'show_related_kpis': True,
+            }
+        }
+    
+    def action_view_dependent_kpis(self):
+        """Action to view KPIs that depend on this KPI"""
+        self.ensure_one()
+        
+        # Find KPIs that use this KPI as operand
+        dependent_kpis = self.env['account.dashboard.banner.cell'].search([
+            ('cell_type', '=', 'kpi_math_operation'),
+            '|', 
+            ('kpi_operand_a_id', '=', self.id),
+            ('kpi_operand_b_id', '=', self.id)
+        ])
+        
+        if not dependent_kpis:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No Dependent KPIs'),
+                    'message': _('No other KPIs use this metric in their calculations.'),
+                    'type': 'info',
+                    'sticky': False,
+                }
+            }
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('KPIs using: %s') % self.display_name,
+            'res_model': 'account.dashboard.banner.cell',
+            'view_mode': 'tree,form',
+            'domain': [('id', 'in', dependent_kpis.ids)],
+            'context': {'create': False},
+        }

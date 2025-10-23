@@ -38,6 +38,9 @@
                         <button class="btn btn-sm btn-outline-purple" data-category="profitability" onclick="filterKpisByCategory('profitability')">
                             <i class="fa fa-line-chart me-1"></i>Profitability
                         </button>
+                        <button class="btn btn-sm btn-outline-success" data-category="ratios" onclick="filterKpisByCategory('ratios')">
+                            <i class="fa fa-percent me-1"></i>Ratios
+                        </button>
                         <button class="btn btn-sm btn-outline-secondary" data-category="tax_credits_debts" onclick="filterKpisByCategory('tax_credits_debts')">
                             <i class="fa fa-university me-1"></i>Tax Credits
                         </button>
@@ -82,13 +85,25 @@
                                 <div t-att-class="'metric-number-compact ' + number_class" t-out="cell_data['value']"></div>
                                 <div class="metric-header-compact">
                                     <div t-att-class="'metric-title-compact ' + title_class" t-out="cell_data['label']"></div>
-                                    <button t-att-class="'btn-config-compact ' + (warn_level !== 'safe' ? 'btn-config-alert' : '')" 
-                                            t-att-data-kpi-id="cell_data['kpi_id']"
-                                            t-att-data-kpi-label="cell_data['label']"
-                                            onclick="return openKpiConfig(this);"
-                                            title="Configure KPI">
-                                        <i class="fa fa-cog"></i>
-                                    </button>
+                                    <div class="kpi-actions-compact">
+                                        <!-- Botón para ver KPIs relacionados -->
+                                        <button class="btn-related-compact" 
+                                                t-att-data-kpi-id="cell_data['kpi_id']"
+                                                t-att-data-kpi-label="cell_data['label']"
+                                                onclick="return viewRelatedKpis(this);"
+                                                title="View Related KPIs"
+                                                style="display: inline-block; margin-right: 4px;">
+                                            <i class="fa fa-sitemap"></i>
+                                        </button>
+                                        <!-- Botón de configuración -->
+                                        <button t-att-class="'btn-config-compact ' + (warn_level !== 'safe' ? 'btn-config-alert' : '')" 
+                                                t-att-data-kpi-id="cell_data['kpi_id']"
+                                                t-att-data-kpi-label="cell_data['label']"
+                                                onclick="return openKpiConfig(this);"
+                                                title="Configure KPI">
+                                            <i class="fa fa-cog"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <!-- Target Achievement Percentage -->
