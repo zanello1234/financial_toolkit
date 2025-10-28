@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Acción de Reporte -->
+    <record id="action_report_closing_worksheet" model="ir.actions.report">
+        <field name="name">Reporte de Control de Cierre</field>
+        <field name="model">closing.worksheet</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">account_closing_control.closing_report_template</field>
+        <field name="report_file">account_closing_control.closing_report_template</field>
+        <field name="print_report_name">'Reporte_Cierre_%s_%s' % (object.name.replace(' ', '_'), object.date_to.strftime('%Y%m%d'))</field>
+        <field name="binding_model_id" ref="model_closing_worksheet"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Plantilla de Cierre Mensual -->
+    <record id="template_monthly_closing" model="closing.template">
+        <field name="name">Cierre Mensual Estándar</field>
+        <field name="periodicity">monthly</field>
+        <field name="description">
+            <![CDATA[
+            <p>Plantilla estándar para el cierre contable mensual que incluye todas las tareas básicas requeridas:</p>
+            <ul>
+                <li>Conciliaciones bancarias</li>
+                <li>Revisión de inventarios</li>
+                <li>Validación de cuentas puente</li>
+                <li>Provisiones y ajustes</li>
+                <li>Verificaciones automáticas</li>
+            </ul>
+            ]]>
+        </field>
+    </record>
+
+    <!-- Líneas de la Plantilla Mensual -->
+    <record id="line_monthly_bank_reconciliation" model="closing.template.line">
+        <field name="template_id" ref="template_monthly_closing"/>
+        <field name="sequence">10</field>
+        <field name="name">Conciliación Bancaria</field>
+        <field name="description">
+            <![CDATA[
+            <p><strong>Objetivo:</strong> Conciliar todos los extractos bancarios del período.</p>
+            <p><strong>Procedimiento:</strong></p>
+            <ol>
+                <li>Revisar extractos bancarios del mes</li>
+                <li>Conciliar movimientos en Odoo</li>
+                <li>Verificar que no queden partidas pendientes</li>
+                <li>Documentar cualquier diferencia encontrada</li>
+            </ol>
+            <p><strong>Criterio de Aceptación:</strong> Todas las cuentas bancarias deben estar conciliadas al 100%.</p>
+            ]]>
+        </field>
+        <field name="validation_type">manual</field>
+        <field name="required">True</field>
+    </record>
+
+    <record id="line_monthly_inventory_review" model="closing.template.line">
+        <field name="template_id" ref="template_monthly_closing"/>
+        <field name="sequence">20</field>
+        <field name="name">Revisión de Inventarios</field>
+        <field name="description">
+            <![CDATA[
+            <p><strong>Objetivo:</strong> Verificar la exactitud de los inventarios y su valoración.</p>
+            <p><strong>Procedimiento:</strong></p>
+            <ol>
+                <li>Revisar movimientos de inventario del período</li>
+                <li>Verificar valoración de productos</li>
+                <li>Confirmar que no hay movimientos pendientes</li>
+                <li>Revisar obsolescencias y ajustes necesarios</li>
+            </ol>
+            ]]>
+        </field>
+        <field name="validation_type">manual</field>
+        <field name="required">True</field>
+    </record>
+
+    <record id="line_monthly_bridge_accounts" model="closing.template.line">
+        <field name="template_id" ref="template_monthly_closing"/>
+        <field name="sequence">30</field>
+        <field name="name">Validar Cuentas Puente</field>
+        <field name="description">
+            <![CDATA[
+            <p><strong>Objetivo:</strong> Verificar automáticamente que las cuentas puente tengan saldo cero.</p>
+            <p>Esta validación se ejecuta automáticamente y verificará:</p>
+            <ul>
+                <li>Cuentas de transferencia interna</li>
+                <li>Cuentas de suspense</li>
+                <li>Cuentas temporales de ajuste</li>
+            </ul>
+            ]]>
+        </field>
+        <field name="validation_type">python</field>
+        <field name="python_code"><![CDATA[
+# Validar que las cuentas puente tengan saldo cero
+bridge_accounts = env['account.account'].search([
+    ('code', 'like', '1199%'),  # Ajustar según plan de cuentas
+    ('company_id', '=', company.id)
+])
+
+unbalanced = []
+for account in bridge_accounts:
+    # Calcular saldo a la fecha de cierre
+    domain = [
+        ('account_id', '=', account.id),
+        ('date', '<=', date_to),
+        ('company_id', '=', company.id)
+    ]
+    balance = sum(env['account.move.line'].search(domain).mapped('balance'))
+    if abs(balance) > 0.01:  # Tolerancia de 1 centavo
+        unbalanced.append(f"{account.code} - {account.name}: {balance}")
+
+if unbalanced:
+    raise UserError(f"Cuentas puente con saldo diferente de cero:\n" + "\n".join(unbalanced))
+else:
+    self.validation_log = f"✓ Validación exitosa: {len(bridge_accounts)} cuentas puente verificadas."
+        ]]></field>
+        <field name="required">True</field>
+    </record>
+
+    <record id="line_monthly_provisions" model="closing.template.line">
+        <field name="template_id" ref="template_monthly_closing"/>
+        <field name="sequence">40</field>
+        <field name="name">Provisiones y Ajustes</field>
+        <field name="description">
+            <![CDATA[
+            <p><strong>Objetivo:</strong> Registrar todas las provisiones y ajustes del período.</p>
+            <p><strong>Incluye:</strong></p>
+            <ul>
+                <li>Provisión para vacaciones</li>
+                <li>Provisión para aguinaldo</li>
+                <li>Depreciaciones</li>
+                <li>Provisión para deudores incobrables</li>
+                <li>Ajustes por diferencias cambiarias</li>
+            </ul>
+            ]]>
+        </field>
+        <field name="validation_type">manual</field>
+        <field name="required">True</field>
+    </record>
+
+    <record id="line_monthly_balance_validation" model="closing.template.line">
+        <field name="template_id" ref="template_monthly_closing"/>
+        <field name="sequence">50</field>
+        <field name="name">Validación de Balance</field>
+        <field name="description">
+            <![CDATA[
+            <p><strong>Objetivo:</strong> Verificar automáticamente que el balance esté cuadrado.</p>
+            <p>Esta validación automática verificará que la suma de débitos sea igual a la suma de créditos.</p>
+            ]]>
+        </field>
+        <field name="validation_type">python</field>
+        <field name="python_code"><![CDATA[
+# Validar que el balance esté cuadrado
+move_lines = env['account.move.line'].search([
+    ('date', '>=', date_from),
+    ('date', '<=', date_to),
+    ('company_id', '=', company.id),
+    ('move_id.state', '=', 'posted')
+])
+
+total_debit = sum(move_lines.mapped('debit'))
+total_credit = sum(move_lines.mapped('credit'))
+difference = abs(total_debit - total_credit)
+
+if difference > 0.01:  # Tolerancia de 1 centavo
+    raise UserError(f"Balance descuadrado:\nDébitos: {total_debit}\nCréditos: {total_credit}\nDiferencia: {difference}")
+else:
+    self.validation_log = f"✓ Balance cuadrado: Débitos={total_debit}, Créditos={total_credit}"
+        ]]></field>
+        <field name="required">True</field>
+    </record>
+
+    <!-- Plantilla de Cierre Anual -->
+    <record id="template_annual_closing" model="closing.template">
+        <field name="name">Cierre Anual Completo</field>
+        <field name="periodicity">annually</field>
+        <field name="description">
+            <![CDATA[
+            <p>Plantilla completa para el cierre contable anual que incluye todas las tareas del cierre mensual más:</p>
+            <ul>
+                <li>Inventario físico completo</li>
+                <li>Revisión de activos fijos</li>
+                <li>Cálculo de impuestos anuales</li>
+                <li>Preparación de estados financieros</li>
+                <li>Validaciones fiscales</li>
+            </ul>
+            ]]>
+        </field>
+    </record>
+
+    <!-- Líneas de la Plantilla Anual (incluye las mismas del mensual más adicionales) -->
+    <record id="line_annual_physical_inventory" model="closing.template.line">
+        <field name="template_id" ref="template_annual_closing"/>
+        <field name="sequence">100</field>
+        <field name="name">Inventario Físico Completo</field>
+        <field name="description">
+            <![CDATA[
+            <p><strong>Objetivo:</strong> Realizar inventario físico completo de todos los productos.</p>
+            <p><strong>Procedimiento:</strong></p>
+            <ol>
+                <li>Planificar y organizar el conteo físico</li>
+                <li>Ejecutar el inventario físico</li>
+                <li>Registrar diferencias encontradas</li>
+                <li>Ajustar el sistema según diferencias</li>
+                <li>Documentar el proceso</li>
+            </ol>
+            ]]>
+        </field>
+        <field name="validation_type">manual</field>
+        <field name="required">True</field>
+    </record>
+
+    <record id="line_annual_fixed_assets" model="closing.template.line">
+        <field name="template_id" ref="template_annual_closing"/>
+        <field name="sequence">110</field>
+        <field name="name">Revisión de Activos Fijos</field>
+        <field name="description">
+            <![CDATA[
+            <p><strong>Objetivo:</strong> Verificar la existencia y valoración de activos fijos.</p>
+            <p><strong>Incluye:</strong></p>
+            <ul>
+                <li>Verificación física de activos</li>
+                <li>Revisión de depreciaciones</li>
+                <li>Identificación de activos obsoletos</li>
+                <li>Actualización de vidas útiles</li>
+            </ul>
+            ]]>
+        </field>
+        <field name="validation_type">manual</field>
+        <field name="required">True</field>
+    </record>
+
+    <record id="line_annual_tax_calculation" model="closing.template.line">
+        <field name="template_id" ref="template_annual_closing"/>
+        <field name="sequence">120</field>
+        <field name="name">Cálculo de Impuestos Anuales</field>
+        <field name="description">
+            <![CDATA[
+            <p><strong>Objetivo:</strong> Calcular y provisionar todos los impuestos anuales.</p>
+            <p><strong>Incluye:</strong></p>
+            <ul>
+                <li>Impuesto a las ganancias</li>
+                <li>Impuesto al valor agregado anual</li>
+                <li>Otros impuestos específicos</li>
+                <li>Diferimientos y ajustes fiscales</li>
+            </ul>
+            ]]>
+        </field>
+        <field name="validation_type">manual</field>
+        <field name="required">True</field>
+    </record>
+
+</odoo>

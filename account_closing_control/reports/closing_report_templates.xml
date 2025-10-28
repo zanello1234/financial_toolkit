@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="closing_report_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Encabezado del Reporte -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h2 class="text-center mb-4">
+                                    <strong>REPORTE DE CONTROL DE CIERRE CONTABLE</strong>
+                                </h2>
+                                <h3 class="text-center mb-5">
+                                    <t t-esc="doc.name"/>
+                                </h3>
+                            </div>
+                        </div>
+
+                        <!-- Información General -->
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td><strong>Período:</strong></td>
+                                        <td><t t-esc="doc.date_from"/> - <t t-esc="doc.date_to"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Plantilla:</strong></td>
+                                        <td><t t-esc="doc.template_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Compañía:</strong></td>
+                                        <td><t t-esc="doc.company_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Generado por:</strong></td>
+                                        <td><t t-esc="doc.created_by.name"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td><strong>Estado:</strong></td>
+                                        <td>
+                                            <span t-if="doc.state == 'done'" class="badge badge-success">Cerrado</span>
+                                            <span t-elif="doc.state == 'to_review'" class="badge badge-warning">A Revisar</span>
+                                            <span t-elif="doc.state == 'in_progress'" class="badge badge-info">En Progreso</span>
+                                            <span t-else="" class="badge badge-secondary"><t t-esc="dict(doc._fields['state'].selection)[doc.state]"/></span>
+                                        </td>
+                                    </tr>
+                                    <tr t-if="doc.approved_by">
+                                        <td><strong>Aprobado por:</strong></td>
+                                        <td><t t-esc="doc.approved_by.name"/></td>
+                                    </tr>
+                                    <tr t-if="doc.approved_date">
+                                        <td><strong>Fecha de Aprobación:</strong></td>
+                                        <td><t t-esc="doc.approved_date.strftime('%d/%m/%Y %H:%M')"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Fecha de Generación:</strong></td>
+                                        <td><t t-esc="time"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Resumen Estadístico -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4>Resumen Estadístico</h4>
+                                <div class="row">
+                                    <div class="col-3">
+                                        <div class="card text-center">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-primary"><t t-esc="doc.total_tasks"/></h5>
+                                                <p class="card-text">Total Tareas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="card text-center">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-success"><t t-esc="doc.completed_tasks"/></h5>
+                                                <p class="card-text">Completadas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="card text-center">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-warning"><t t-esc="doc.pending_tasks"/></h5>
+                                                <p class="card-text">Pendientes</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="card text-center">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-danger"><t t-esc="doc.failed_tasks"/></h5>
+                                                <p class="card-text">Fallidas</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="progress mt-3" style="height: 25px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         t-attf-style="width: #{doc.progress_percentage}%"
+                                         t-attf-aria-valuenow="#{doc.progress_percentage}"
+                                         aria-valuemin="0" aria-valuemax="100">
+                                        <t t-esc="round(doc.progress_percentage, 1)"/>% Completado
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detalle de Tareas -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4>Detalle de Tareas</h4>
+                                <table class="table table-sm table-bordered">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th style="width: 5%">#</th>
+                                            <th style="width: 30%">Tarea</th>
+                                            <th style="width: 10%">Tipo</th>
+                                            <th style="width: 15%">Estado</th>
+                                            <th style="width: 15%">Responsable</th>
+                                            <th style="width: 15%">Fecha Finalización</th>
+                                            <th style="width: 10%">Obligatorio</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="doc.line_ids.sorted('sequence')" t-as="line">
+                                            <tr>
+                                                <td><t t-esc="line.sequence"/></td>
+                                                <td><t t-esc="line.name"/></td>
+                                                <td>
+                                                    <span t-if="line.validation_type == 'manual'" class="badge badge-secondary">Manual</span>
+                                                    <span t-elif="line.validation_type == 'action'" class="badge badge-info">Acción</span>
+                                                    <span t-elif="line.validation_type == 'python'" class="badge badge-primary">Python</span>
+                                                </td>
+                                                <td>
+                                                    <span t-if="line.state == 'done'" class="badge badge-success">Completado</span>
+                                                    <span t-elif="line.state == 'failed'" class="badge badge-danger">Fallido</span>
+                                                    <span t-elif="line.state == 'skipped'" class="badge badge-secondary">Omitido</span>
+                                                    <span t-elif="line.state == 'in_progress'" class="badge badge-info">En Progreso</span>
+                                                    <span t-else="" class="badge badge-warning">Pendiente</span>
+                                                </td>
+                                                <td><t t-esc="line.completed_by.name if line.completed_by else ''"/></td>
+                                                <td><t t-esc="line.completed_date.strftime('%d/%m/%Y %H:%M') if line.completed_date else ''"/></td>
+                                                <td>
+                                                    <i t-if="line.required" class="fa fa-check text-success" title="Obligatorio"/>
+                                                    <i t-else="" class="fa fa-minus text-muted" title="Opcional"/>
+                                                </td>
+                                            </tr>
+                                            <tr t-if="line.validation_log and line.state in ('done', 'failed')">
+                                                <td></td>
+                                                <td colspan="6">
+                                                    <small class="text-muted">
+                                                        <strong>Log:</strong> <t t-esc="line.validation_log"/>
+                                                    </small>
+                                                </td>
+                                            </tr>
+                                            <tr t-if="line.notes">
+                                                <td></td>
+                                                <td colspan="6">
+                                                    <small class="text-info">
+                                                        <strong>Notas:</strong> <t t-raw="line.notes"/>
+                                                    </small>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Estadísticas por Responsable -->
+                        <div class="row mb-4" t-if="docs_stats.get(doc.id, {}).get('responsible_stats')">
+                            <div class="col-12">
+                                <h4>Estadísticas por Responsable</h4>
+                                <table class="table table-sm table-bordered">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th>Responsable</th>
+                                            <th class="text-center">Total Tareas</th>
+                                            <th class="text-center">Completadas</th>
+                                            <th class="text-center">Fallidas</th>
+                                            <th class="text-center">% Efectividad</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="docs_stats[doc.id]['responsible_stats'].items()" t-as="stat_item">
+                                            <t t-set="user_name" t-value="stat_item[0]"/>
+                                            <t t-set="stats" t-value="stat_item[1]"/>
+                                            <tr>
+                                                <td><t t-esc="user_name"/></td>
+                                                <td class="text-center"><t t-esc="stats['total']"/></td>
+                                                <td class="text-center text-success"><t t-esc="stats['completed']"/></td>
+                                                <td class="text-center text-danger"><t t-esc="stats['failed']"/></td>
+                                                <td class="text-center">
+                                                    <t t-set="effectiveness" t-value="round((stats['completed'] / stats['total']) * 100, 1) if stats['total'] > 0 else 0"/>
+                                                    <span t-attf-class="badge #{effectiveness >= 90 and 'badge-success' or effectiveness >= 70 and 'badge-warning' or 'badge-danger'}">
+                                                        <t t-esc="effectiveness"/>%
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Información de Bloqueo -->
+                        <div class="row mb-4" t-if="doc.state == 'done'">
+                            <div class="col-12">
+                                <h4>Información de Bloqueo</h4>
+                                <div class="alert alert-success">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <strong>Fecha de Bloqueo Contable:</strong> <t t-esc="doc.lock_date_set"/>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>Fecha de Bloqueo Fiscal:</strong> <t t-esc="doc.tax_lock_date_set"/>
+                                        </div>
+                                    </div>
+                                    <p class="mt-2 mb-0">
+                                        <i class="fa fa-lock"/> El período ha sido bloqueado exitosamente.
+                                        No se pueden crear asientos contables ni fiscales antes de las fechas indicadas.
+                                        Esto incluye ventas, compras y declaraciones fiscales.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumen de Notas -->
+                        <div class="row mb-4" t-if="doc.summary">
+                            <div class="col-12">
+                                <h4>Resumen</h4>
+                                <div class="border p-3">
+                                    <t t-raw="doc.summary"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Firmas y Certificación -->
+                        <div class="row mt-5">
+                            <div class="col-12">
+                                <div class="border-top pt-4">
+                                    <p class="text-justify">
+                                        <strong>Certificación:</strong> Este documento certifica la finalización de los controles 
+                                        de cierre contable para el período <strong><t t-esc="doc.date_from"/> - <t t-esc="doc.date_to"/></strong> 
+                                        correspondiente a <strong><t t-esc="doc.company_id.name"/></strong>. 
+                                        Todas las tareas obligatorias han sido completadas y verificadas según los procedimientos establecidos.
+                                    </p>
+                                    
+                                    <div class="row mt-5">
+                                        <div class="col-6 text-center">
+                                            <div class="border-top pt-2" style="margin: 0 20px;">
+                                                <strong><t t-esc="doc.created_by.name"/></strong><br/>
+                                                <small>Preparado por</small><br/>
+                                                <small>Fecha: <t t-esc="doc.create_date.strftime('%d/%m/%Y')"/></small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 text-center" t-if="doc.approved_by">
+                                            <div class="border-top pt-2" style="margin: 0 20px;">
+                                                <strong><t t-esc="doc.approved_by.name"/></strong><br/>
+                                                <small>Aprobado por</small><br/>
+                                                <small>Fecha: <t t-esc="doc.approved_date.strftime('%d/%m/%Y')"/></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

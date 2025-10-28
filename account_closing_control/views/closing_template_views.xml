@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Vista Form para Plantilla de Cierre -->
+    <record id="view_closing_template_form" model="ir.ui.view">
+        <field name="name">closing.template.form</field>
+        <field name="model">closing.template</field>
+        <field name="arch" type="xml">
+            <form string="Plantilla de Cierre">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_worksheets" type="object"
+                                class="oe_stat_button" icon="fa-file-text">
+                            <field name="line_count" widget="statinfo" string="Hojas de Cierre"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Ej: Cierre Mensual"/></h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="periodicity"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                            <field name="line_count" string="Tareas Configuradas"/>
+                        </group>
+                    </group>
+
+                    <field name="description" placeholder="Descripción general de esta plantilla de cierre..."/>
+
+                    <notebook>
+                        <page string="Tareas de Cierre" name="lines">
+                            <field name="line_ids" widget="one2many_list">
+                                <list string="Tareas">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="validation_type"/>
+                                    <field name="required"/>
+                                    <field name="responsible_group_id"/>
+                                </list>
+                                <form string="Tarea de Cierre">
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="sequence"/>
+                                                <field name="validation_type"/>
+                                                <field name="required"/>
+                                            </group>
+                                            <group>
+                                                <field name="responsible_group_id"/>
+                                            </group>
+                                        </group>
+
+                                        <field name="description" placeholder="Instrucciones detalladas para esta tarea..."/>
+                                        
+                                        <group invisible="validation_type != 'action'">
+                                            <field name="related_action_id"/>
+                                        </group>
+
+                                        <group invisible="validation_type != 'python'">
+                                            <field name="python_code" widget="code" options="{'mode': 'python'}"/>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vista Tree para Plantilla de Cierre -->
+    <record id="view_closing_template_tree" model="ir.ui.view">
+        <field name="name">closing.template.tree</field>
+        <field name="model">closing.template</field>
+        <field name="arch" type="xml">
+            <list string="Plantillas de Cierre">
+                <field name="name"/>
+                <field name="periodicity"/>
+                <field name="line_count" string="Tareas"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista Search para Plantilla de Cierre -->
+    <record id="view_closing_template_search" model="ir.ui.view">
+        <field name="name">closing.template.search</field>
+        <field name="model">closing.template</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Plantillas">
+                <field name="name"/>
+                <field name="periodicity"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <separator/>
+                <filter string="Activas" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactivas" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Mensual" name="monthly" domain="[('periodicity', '=', 'monthly')]"/>
+                <filter string="Trimestral" name="quarterly" domain="[('periodicity', '=', 'quarterly')]"/>
+                <filter string="Anual" name="annual" domain="[('periodicity', '=', 'annual')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Periodicidad" name="group_periodicity" context="{'group_by': 'periodicity'}"/>
+                    <filter string="Compañía" name="group_company" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Acción para Plantillas de Cierre -->
+    <record id="action_closing_template" model="ir.actions.act_window">
+        <field name="name">Plantillas de Cierre</field>
+        <field name="res_model">closing.template</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_closing_template_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                ¡Cree su primera plantilla de cierre!
+            </p>
+            <p>
+                Las plantillas de cierre definen el conjunto de tareas que se deben
+                completar durante el proceso de cierre contable. Una vez configuradas,
+                podrá reutilizarlas para crear hojas de cierre específicas para cada período.
+            </p>
+        </field>
+    </record>
+
+    <!-- Vista Tree para Tareas de Cierre -->
+    <record id="view_closing_template_line_tree" model="ir.ui.view">
+        <field name="name">closing.template.line.tree</field>
+        <field name="model">closing.template.line</field>
+        <field name="arch" type="xml">
+            <list string="Tareas de Cierre" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="template_id"/>
+                <field name="name"/>
+                <field name="validation_type"/>
+                <field name="required"/>
+                <field name="responsible_group_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista Form para Tareas de Cierre -->
+    <record id="view_closing_template_line_form" model="ir.ui.view">
+        <field name="name">closing.template.line.form</field>
+        <field name="model">closing.template.line</field>
+        <field name="arch" type="xml">
+            <form string="Tarea de Cierre">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Ej: Conciliación Bancaria"/></h1>
+                    </div>
+
+                        <group>
+                            <group>
+                                <field name="template_id"/>
+                                <field name="sequence"/>
+                                <field name="validation_type"/>
+                                <field name="required"/>
+                            </group>
+                            <group>
+                                <field name="responsible_group_id"/>
+                            </group>
+                        </group>                    <field name="description" placeholder="Instrucciones detalladas para esta tarea..."/>
+                    
+                    <group invisible="validation_type != 'action'" string="Configuración de Acción">
+                        <field name="related_action_id"/>
+                    </group>
+
+                    <group invisible="validation_type != 'python'" string="Código Python">
+                        <field name="python_code" widget="code" options="{'mode': 'python'}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vista Search para Tareas de Cierre -->
+    <record id="view_closing_template_line_search" model="ir.ui.view">
+        <field name="name">closing.template.line.search</field>
+        <field name="model">closing.template.line</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Tareas de Cierre">
+                <field name="name"/>
+                <field name="template_id"/>
+                <field name="validation_type"/>
+                <field name="responsible_group_id"/>
+                <separator/>
+                <filter string="Requeridas" name="required" domain="[('required', '=', True)]"/>
+                <filter string="Opcionales" name="optional" domain="[('required', '=', False)]"/>
+                <separator/>
+                <filter string="Manual" name="manual" domain="[('validation_type', '=', 'manual')]"/>
+                <filter string="Acción" name="action" domain="[('validation_type', '=', 'action')]"/>
+                <filter string="Python" name="python" domain="[('validation_type', '=', 'python')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Plantilla" name="group_template" context="{'group_by': 'template_id'}"/>
+                    <filter string="Tipo de Validación" name="group_validation" context="{'group_by': 'validation_type'}"/>
+                    <filter string="Grupo Responsable" name="group_group" context="{'group_by': 'responsible_group_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Acción para Tareas de Cierre -->
+    <record id="action_closing_template_line" model="ir.actions.act_window">
+        <field name="name">Tareas de Cierre</field>
+        <field name="res_model">closing.template.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_closing_template_line_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                ¡Configure sus tareas de cierre!
+            </p>
+            <p>
+                Las tareas de cierre definen los pasos específicos que se deben completar
+                durante el proceso de cierre contable. Puede configurar validaciones manuales,
+                acciones automáticas o scripts Python personalizados.
+            </p>
+            <p>
+                <b>Tipos de Validación:</b><br/>
+                • <b>Manual:</b> El usuario confirma la tarea manualmente<br/>
+                • <b>Acción:</b> Enlace directo a una vista de Odoo<br/>
+                • <b>Python:</b> Validación automática por código<br/>
+                • <b>Responsabilidad:</b> Se asigna por grupos de usuarios
+            </p>
+        </field>
+    </record>
+
+</odoo>

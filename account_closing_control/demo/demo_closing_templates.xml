@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Datos de demostración: Hoja de cierre de ejemplo -->
+    <record id="demo_worksheet_october_2025" model="closing.worksheet">
+        <field name="name">Cierre Octubre 2025</field>
+        <field name="template_id" ref="template_monthly_closing"/>
+        <field name="date_from">2025-10-01</field>
+        <field name="date_to">2025-10-31</field>
+        <field name="state">in_progress</field>
+        <field name="summary">
+            <![CDATA[
+            <p><strong>Resumen del Cierre Octubre 2025</strong></p>
+            <p>Cierre mensual en progreso. Se han completado las conciliaciones bancarias y se está trabajando en la revisión de inventarios.</p>
+            <p><strong>Observaciones:</strong></p>
+            <ul>
+                <li>Banco Nación: Conciliado 100%</li>
+                <li>Banco Galicia: Pendiente transferencia del 30/10</li>
+                <li>Inventario: Se detectaron diferencias menores en almacén principal</li>
+            </ul>
+            ]]>
+        </field>
+    </record>
+
+    <!-- Ejemplo de worksheet completada (mes anterior) -->
+    <record id="demo_worksheet_september_2025" model="closing.worksheet">
+        <field name="name">Cierre Septiembre 2025</field>
+        <field name="template_id" ref="template_monthly_closing"/>
+        <field name="date_from">2025-09-01</field>
+        <field name="date_to">2025-09-30</field>
+        <field name="state">done</field>
+        <field name="approved_date">2025-10-05 14:30:00</field>
+        <field name="lock_date_set">2025-09-30</field>
+        <field name="tax_lock_date_set">2025-09-30</field>
+        <field name="summary">
+            <![CDATA[
+            <p><strong>Cierre Septiembre 2025 - COMPLETADO</strong></p>
+            <p>Cierre mensual finalizado exitosamente. Todas las tareas obligatorias fueron completadas sin observaciones significativas.</p>
+            <p><strong>Resumen de actividades:</strong></p>
+            <ul>
+                <li>✓ Conciliaciones bancarias: 100% completadas</li>
+                <li>✓ Inventarios: Sin diferencias materiales</li>
+                <li>✓ Cuentas puente: Todas en cero</li>
+                <li>✓ Provisiones: Calculadas según políticas</li>
+                <li>✓ Balance: Cuadrado sin diferencias</li>
+            </ul>
+            <p>Período bloqueado el 05/10/2025 a las 14:30 hs.</p>
+            ]]>
+        </field>
+    </record>
+
+</odoo>

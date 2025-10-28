@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Vista Form para Wizard de Cierre -->
+    <record id="view_closing_wizard_form" model="ir.ui.view">
+        <field name="name">closing.wizard.form</field>
+        <field name="model">closing.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Crear Hoja de Cierre">
+                <!-- Campos ocultos necesarios para las condiciones -->
+                <field name="has_existing_worksheets" invisible="1"/>
+                
+                <sheet>
+                    <div class="alert alert-warning" role="alert" 
+                         invisible="has_existing_worksheets == False">
+                        <strong>¡Atención!</strong> Ya existen cierres para el período seleccionado.
+                        <button name="action_view_existing_worksheets" type="object" 
+                                string="Ver Cierres Existentes" class="btn btn-link p-0"/>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="template_id"/>
+                            <field name="periodicity" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="period_selection_mode" widget="radio"/>
+                        </group>
+                    </group>
+
+                    <!-- Selección Rápida de Período -->
+                    <group string="Período" invisible="period_selection_mode != 'quick'">
+                        <group>
+                            <field name="year"/>
+                            <field name="month" invisible="periodicity != 'monthly'" required="periodicity == 'monthly' and period_selection_mode == 'quick'"/>
+                            <field name="quarter" invisible="periodicity != 'quarterly'" required="periodicity == 'quarterly' and period_selection_mode == 'quick'"/>
+                        </group>
+                        <group>
+                            <field name="date_from" readonly="1"/>
+                            <field name="date_to" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- Fechas Manuales -->
+                    <group string="Período" invisible="period_selection_mode != 'manual'">
+                        <group>
+                            <field name="date_from" required="period_selection_mode == 'manual'"/>
+                            <field name="date_to" required="period_selection_mode == 'manual'"/>
+                        </group>
+                        <group>
+                        </group>
+                    </group>
+
+                    <group>
+                        <field name="name" placeholder="Ej: Cierre Octubre 2025"/>
+                    </group>
+
+                    <!-- Información de Cierres Existentes -->
+                    <group string="Cierres Existentes" invisible="has_existing_worksheets == False">
+                        <field name="existing_worksheet_ids" nolabel="1" readonly="1">
+                            <list string="Cierres que se Superponen" create="false" edit="false" delete="false">
+                                <field name="name"/>
+                                <field name="date_from"/>
+                                <field name="date_to"/>
+                            </list>
+                        </field>
+                    </group>
+                </sheet>
+
+                <footer>
+                    <button name="action_create_worksheet" type="object" 
+                            string="Crear Hoja de Cierre" class="btn-primary"
+                            invisible="has_existing_worksheets == True"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción para Wizard de Cierre -->
+    <record id="action_closing_wizard" model="ir.actions.act_window">
+        <field name="name">Crear Hoja de Cierre</field>
+        <field name="res_model">closing.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_closing_wizard_form"/>
+    </record>
+
+</odoo>

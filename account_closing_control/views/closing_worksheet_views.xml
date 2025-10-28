@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Vista Kanban para Tareas de Cierre -->
+    <record id="view_closing_worksheet_line_kanban" model="ir.ui.view">
+        <field name="name">closing.worksheet.line.kanban</field>
+        <field name="model">closing.worksheet.line</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column" quick_create="false" 
+                    group_create="false" group_delete="false" group_edit="false">
+                <field name="state"/>
+                <field name="name"/>
+                <field name="validation_type"/>
+                <field name="required"/>
+                <field name="user_id"/>
+                <field name="responsible_group_id"/>
+                <field name="completed_date"/>
+                <field name="completed_by"/>
+                
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <div class="o_primary">
+                                        <strong><field name="name"/></strong>
+                                    </div>
+                                    <div class="o_secondary">
+                                        <span class="badge" t-att-class="record.validation_type.raw_value == 'manual' ? 'badge-info' : record.validation_type.raw_value == 'python' ? 'badge-warning' : 'badge-primary'">
+                                            <field name="validation_type"/>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_manage_button_section">
+                                    <a class="o_kanban_manage_toggle_button" href="#" data-toggle="dropdown" role="button" aria-label="Dropdown manage menu" title="Dropdown manage menu">
+                                        <i class="fa fa-ellipsis-v" role="img" aria-label="Manage"/>
+                                    </a>
+                                    <div class="dropdown-menu" role="menu">
+                                        <a t-if="record.validation_type.raw_value == 'manual' and record.state.raw_value != 'done'" name="action_mark_done" type="object" class="dropdown-item">Marcar Completado</a>
+                                        <a t-if="record.validation_type.raw_value == 'action' and record.state.raw_value != 'done'" name="action_execute_action" type="object" class="dropdown-item">Ejecutar Acción</a>
+                                        <a t-if="record.validation_type.raw_value == 'python' and record.state.raw_value != 'done'" name="action_validate_python" type="object" class="dropdown-item">Validar Python</a>
+                                        <a t-if="record.required.raw_value == false and record.state.raw_value not in ['done', 'skipped']" name="action_skip_task" type="object" class="dropdown-item">Omitir Tarea</a>
+                                        <a t-if="record.state.raw_value != 'pending'" name="action_reset_task" type="object" class="dropdown-item">Reiniciar</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="o_kanban_card_content">
+                                <div t-if="record.required.raw_value" class="mb-1">
+                                    <span class="badge badge-danger">Obligatorio</span>
+                                </div>
+                                
+                                <div t-if="record.user_id.value" class="mb-1">
+                                    <small><strong>Responsable:</strong> <t t-esc="record.user_id.value"/></small>
+                                </div>
+                                
+                                <div t-if="record.responsible_group_id.value" class="mb-1">
+                                    <small><strong>Grupo:</strong> <t t-esc="record.responsible_group_id.value"/></small>
+                                </div>
+                                
+                                <div t-if="record.completed_date.value" class="mt-2">
+                                    <small>
+                                        <i class="fa fa-check text-success"/> Completado
+                                        <br/>
+                                        <t t-esc="record.completed_date.value"/>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Vista Kanban para Hoja de Cierre -->
+    <record id="view_closing_worksheet_kanban" model="ir.ui.view">
+        <field name="name">closing.worksheet.kanban</field>
+        <field name="model">closing.worksheet</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column" quick_create="false">
+                <field name="state"/>
+                <field name="name"/>
+                <field name="date_to"/>
+                <field name="template_id"/>
+                <field name="progress_percentage"/>
+                <field name="completed_tasks"/>
+                <field name="total_tasks"/>
+                <field name="approved_by"/>
+                <field name="approved_date"/>
+                
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <div class="o_primary">
+                                        <strong><field name="name"/></strong>
+                                    </div>
+                                    <div class="o_secondary">
+                                        <field name="template_id"/>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_manage_button_section">
+                                    <a class="o_kanban_manage_toggle_button" href="#" data-toggle="dropdown" role="button" aria-label="Dropdown manage menu" title="Dropdown manage menu">
+                                        <i class="fa fa-ellipsis-v" role="img" aria-label="Manage"/>
+                                    </a>
+                                    <div class="dropdown-menu" role="menu">
+                                        <a t-if="record.state.raw_value == 'draft'" name="action_start_closing" type="object" class="dropdown-item">Iniciar Cierre</a>
+                                        <a t-if="record.state.raw_value == 'in_progress'" name="action_send_to_review" type="object" class="dropdown-item">Enviar a Revisión</a>
+                                        <a t-if="record.state.raw_value == 'to_review'" name="action_approve_closing" type="object" class="dropdown-item">Aprobar Cierre</a>
+                                        <a t-if="record.state.raw_value == 'done'" name="action_reopen_closing" type="object" class="dropdown-item">Reabrir Cierre</a>
+                                        <div class="dropdown-divider"/>
+                                        <a name="action_view_closing_report" type="object" class="dropdown-item">Ver Reporte</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="o_kanban_card_content">
+                                <div class="o_kanban_card_manage_pane dropdown-menu" role="menu">
+                                    <div class="o_card_manage_header">
+                                        <h5>Acciones</h5>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong>Período:</strong><br/>
+                                        <field name="date_to"/>
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>Progreso:</strong><br/>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-success" role="progressbar"
+                                                 t-attf-style="width: #{record.progress_percentage.value}%"
+                                                 t-attf-aria-valuenow="#{record.progress_percentage.value}"
+                                                 aria-valuemin="0" aria-valuemax="100"/>
+                                        </div>
+                                        <small><t t-esc="record.progress_percentage.value"/>% (<t t-esc="record.completed_tasks.value"/>/<t t-esc="record.total_tasks.value"/>)</small>
+                                    </div>
+                                </div>
+                                
+                                <div t-if="record.approved_by.value" class="mt-2">
+                                    <small>
+                                        <i class="fa fa-check text-success"/> Aprobado por <strong><t t-esc="record.approved_by.value"/></strong>
+                                        <br/>
+                                        <t t-esc="record.approved_date.value"/>
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="o_kanban_card_footer">
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="state" widget="label_selection" 
+                                               options="{'classes': {'draft': 'secondary', 'in_progress': 'info', 'to_review': 'warning', 'done': 'success', 'cancel': 'danger'}}"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <img t-att-src="kanban_image('res.users', 'avatar_1024', record.created_by.raw_value)" 
+                                             t-att-title="record.created_by.value" 
+                                             width="24" height="24" class="oe_kanban_avatar rounded-circle"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Vista Tree para Hoja de Cierre -->
+    <record id="view_closing_worksheet_tree" model="ir.ui.view">
+        <field name="name">closing.worksheet.tree</field>
+        <field name="model">closing.worksheet</field>
+        <field name="arch" type="xml">
+            <list string="Hojas de Cierre" decoration-info="state=='in_progress'" 
+                  decoration-warning="state=='to_review'" decoration-success="state=='done'" 
+                  decoration-muted="state=='cancel'">
+                <field name="name"/>
+                <field name="template_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="progress_percentage" widget="progressbar"/>
+                <field name="completed_tasks"/>
+                <field name="total_tasks"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state=='in_progress'" 
+                       decoration-warning="state=='to_review'" 
+                       decoration-success="state=='done'"
+                       decoration-danger="state=='cancel'"/>
+                <field name="created_by"/>
+                <field name="approved_by"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista Form para Hoja de Cierre -->
+    <record id="view_closing_worksheet_form" model="ir.ui.view">
+        <field name="name">closing.worksheet.form</field>
+        <field name="model">closing.worksheet</field>
+        <field name="arch" type="xml">
+            <form string="Hoja de Cierre">
+                <header>
+                    <button name="action_start_closing" type="object" string="Iniciar Cierre" 
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_send_to_review" type="object" string="Enviar a Revisión" 
+                            class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_approve_closing" type="object" string="Aprobar Cierre" 
+                            class="oe_highlight" invisible="state != 'to_review'"
+                            groups="account.group_account_manager"/>
+                    <button name="action_reopen_closing" type="object" string="Reabrir Cierre" 
+                            invisible="state != 'done'"
+                            groups="account.group_account_manager"/>
+                    <button name="action_cancel_closing" type="object" string="Cancelar" 
+                            invisible="state in ['done', 'cancel']"/>
+                    <button name="action_view_closing_report" type="object" string="Imprimir Reporte" 
+                            class="btn-secondary" invisible="state != 'done'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,to_review,done"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_tasks_kanban" type="object"
+                                class="oe_stat_button" icon="fa-tasks">
+                            <field name="total_tasks" widget="statinfo" string="Ver Tareas"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="template_id" readonly="state != 'draft'"/>
+                            <field name="date_from" readonly="state != 'draft'"/>
+                            <field name="date_to" readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company" 
+                                   readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="progress_percentage" widget="progressbar"/>
+                            <field name="total_tasks"/>
+                            <field name="completed_tasks"/>
+                            <field name="pending_tasks"/>
+                            <field name="failed_tasks" invisible="failed_tasks == 0"/>
+                        </group>
+                    </group>
+
+                    <group invisible="state != 'done'">
+                        <group>
+                            <field name="approved_by"/>
+                            <field name="approved_date"/>
+                        </group>
+                        <group>
+                            <field name="lock_date_set"/>
+                            <field name="tax_lock_date_set"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Tareas de Cierre" name="tasks">
+                            <field name="line_ids" widget="one2many_list">
+                                <list string="Tareas" decoration-info="state=='in_progress'" 
+                                      decoration-success="state=='done'" decoration-warning="state=='failed'"
+                                      decoration-muted="state=='skipped'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="validation_type"/>
+                                    <field name="user_id"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state=='in_progress'" 
+                                           decoration-success="state=='done'"
+                                           decoration-warning="state=='failed'"
+                                           decoration-muted="state=='skipped'"/>
+                                    <field name="required"/>
+                                    <button name="action_mark_done" type="object" 
+                                            icon="fa-check" title="Marcar Completado"
+                                            invisible="validation_type != 'manual' or state == 'done'"/>
+                                    <button name="action_execute_action" type="object" 
+                                            icon="fa-external-link" title="Ejecutar Acción"
+                                            invisible="validation_type != 'action' or state == 'done'"/>
+                                    <button name="action_validate_python" type="object" 
+                                            icon="fa-play" title="Validar Python"
+                                            invisible="validation_type != 'python' or state == 'done'"/>
+                                    <button name="action_skip_task" type="object" 
+                                            icon="fa-forward" title="Omitir Tarea"
+                                            invisible="required == True or state in ['done', 'skipped']"/>
+                                    <button name="action_reset_task" type="object" 
+                                            icon="fa-sync" title="Reiniciar Tarea"
+                                            invisible="state == 'pending'"/>
+                                </list>
+                                <form string="Tarea de Cierre">
+                                    <header>
+                                        <button name="action_mark_done" type="object" string="Marcar Completado" 
+                                                class="oe_highlight" 
+                                                invisible="validation_type != 'manual' or state == 'done'"/>
+                                        <button name="action_execute_action" type="object" string="Ejecutar Acción" 
+                                                class="oe_highlight"
+                                                invisible="validation_type != 'action' or state == 'done'"/>
+                                        <button name="action_validate_python" type="object" string="Validar Python" 
+                                                class="oe_highlight"
+                                                invisible="validation_type != 'python' or state == 'done'"/>
+                                        <button name="action_skip_task" type="object" string="Omitir Tarea" 
+                                                invisible="required == True or state in ['done', 'skipped']"/>
+                                        <button name="action_reset_task" type="object" string="Reiniciar" 
+                                                invisible="state == 'pending'"/>
+                                        <field name="state" widget="statusbar"/>
+                                    </header>
+                                    <sheet>
+                                        <div class="oe_title">
+                                            <h1><field name="name"/></h1>
+                                        </div>
+                                        
+                                        <group>
+                                            <group>
+                                                <field name="validation_type"/>
+                                                <field name="required"/>
+                                                <field name="user_id"/>
+                                                <field name="responsible_group_id"/>
+                                            </group>
+                                            <group>
+                                                <field name="completed_date"/>
+                                                <field name="completed_by"/>
+                                            </group>
+                                        </group>
+
+                                        <field name="description" placeholder="Instrucciones para la tarea..."/>
+                                        
+                                        <group invisible="validation_type != 'action'">
+                                            <field name="related_action_id"/>
+                                        </group>
+
+                                        <group invisible="validation_type != 'python'">
+                                            <field name="python_code" widget="code" options="{'mode': 'python'}" readonly="1"/>
+                                            <field name="validation_log" invisible="validation_log == False"/>
+                                        </group>
+
+                                        <separator string="Notas y Comentarios"/>
+                                        <field name="notes" placeholder="Comentarios del analista..."/>
+                                        
+                                        <separator string="Adjuntos"/>
+                                        <field name="attachment_ids" widget="many2many_binary"/>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        
+                        <page string="Resumen" name="summary">
+                            <field name="summary" placeholder="Notas de resumen del cierre..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vista Search para Hoja de Cierre -->
+    <record id="view_closing_worksheet_search" model="ir.ui.view">
+        <field name="name">closing.worksheet.search</field>
+        <field name="model">closing.worksheet</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Hojas de Cierre">
+                <field name="name"/>
+                <field name="template_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="created_by"/>
+                <field name="approved_by"/>
+                <separator/>
+                <filter string="Borradores" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="En Progreso" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="A Revisar" name="to_review" domain="[('state', '=', 'to_review')]"/>
+                <filter string="Cerrados" name="done" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter string="Mis Cierres" name="my_closings" domain="[('created_by', '=', uid)]"/>
+                <filter string="Este Año" name="current_year" 
+                        domain="[('date_to', '&gt;=', datetime.datetime.now().strftime('%Y-01-01')),
+                                ('date_to', '&lt;=', datetime.datetime.now().strftime('%Y-12-31'))]"/>
+                <filter string="Último Trimestre" name="last_quarter"
+                        domain="[('date_to', '&gt;=', (datetime.datetime.now() - datetime.timedelta(days=90)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Últimos 6 Meses" name="last_semester"
+                        domain="[('date_to', '&gt;=', (datetime.datetime.now() - datetime.timedelta(days=180)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter string="Con Tareas Fallidas" name="with_failed_tasks" domain="[('failed_tasks', '>', 0)]"/>
+                <filter string="Completados al 100%" name="fully_completed" domain="[('progress_percentage', '=', 100)]"/>
+                <filter string="Aprobados por Mí" name="approved_by_me" domain="[('approved_by', '=', uid)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Plantilla" name="group_template" context="{'group_by': 'template_id'}"/>
+                    <filter string="Mes" name="group_month" context="{'group_by': 'date_to:month'}"/>
+                    <filter string="Año" name="group_year" context="{'group_by': 'date_to:year'}"/>
+                    <filter string="Creado por" name="group_created_by" context="{'group_by': 'created_by'}"/>
+                    <filter string="Aprobado por" name="group_approved_by" context="{'group_by': 'approved_by'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Acción para Hojas de Cierre - Vista principal -->
+    <record id="action_closing_worksheet" model="ir.actions.act_window">
+        <field name="name">Hojas de Cierre</field>
+        <field name="res_model">closing.worksheet</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_closing_worksheet_search"/>
+        <field name="context">{'search_default_in_progress': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                ¡Cree su primera hoja de cierre!
+            </p>
+            <p>
+                Las hojas de cierre son instancias de trabajo para períodos específicos.
+                Use el asistente para crear una nueva hoja basada en una plantilla configurada.
+            </p>
+        </field>
+    </record>
+
+    <!-- Acción para Cierres Completados -->
+    <record id="action_closing_worksheet_completed" model="ir.actions.act_window">
+        <field name="name">Cierres Completados</field>
+        <field name="res_model">closing.worksheet</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_closing_worksheet_search"/>
+        <field name="context">{'search_default_done': 1}</field>
+        <field name="domain">[('state', '=', 'done')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                ¡No hay cierres completados aún!
+            </p>
+            <p>
+                Aquí aparecerán todos los cierres contables que han sido aprobados y finalizados.
+                Puede revisar el historial de cierres, imprimir reportes y consultar las fechas de bloqueo.
+            </p>
+        </field>
+    </record>
+
+    <!-- Acción para Todos los Cierres -->
+    <record id="action_closing_worksheet_all" model="ir.actions.act_window">
+        <field name="name">Todos los Cierres</field>
+        <field name="res_model">closing.worksheet</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_closing_worksheet_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                ¡No hay hojas de cierre creadas!
+            </p>
+            <p>
+                Vista completa de todas las hojas de cierre sin filtros.
+                Use los filtros de búsqueda para encontrar cierres específicos por estado, período o responsable.
+            </p>
+        </field>
+    </record>
+
+    <!-- Acción para Tareas de Cierre en Kanban -->
+    <record id="action_closing_worksheet_line_kanban" model="ir.actions.act_window">
+        <field name="name">Tareas de Cierre</field>
+        <field name="res_model">closing.worksheet.line</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'group_by': 'state'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                ¡No hay tareas de cierre configuradas!
+            </p>
+            <p>
+                Las tareas se crean automáticamente al generar una hoja de cierre
+                basada en una plantilla. Use el kanban para mover las tareas entre estados
+                arrastrando y soltando las tarjetas.
+            </p>
+        </field>
+    </record>
+
+</odoo>

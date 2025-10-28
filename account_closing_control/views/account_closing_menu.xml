@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Sección de Control de Cierre bajo Configuración de Contabilidad -->
+    <menuitem id="menu_closing_control_config"
+              name="Control de Cierre"
+              parent="account.menu_finance_configuration"
+              sequence="30"/>
+
+    <!-- Menú Plantillas de Cierre -->
+    <menuitem id="menu_closing_template"
+              name="Plantillas de Cierre"
+              parent="menu_closing_control_config"
+              action="action_closing_template"
+              sequence="10"/>
+
+    <!-- Menú Tareas de Cierre -->
+    <menuitem id="menu_closing_template_line"
+              name="Tareas de Cierre"
+              parent="menu_closing_control_config"
+              action="action_closing_template_line"
+              sequence="20"/>
+
+    <!-- Menú Hojas de Cierre - Bajo parent ID 140 (Accounting/Accounting) -->
+    <record id="menu_closing_worksheet" model="ir.ui.menu">
+        <field name="name">Control de Cierre</field>
+        <field name="parent_id" eval="140"/>
+        <field name="sequence" eval="85"/>
+    </record>
+
+    <!-- Submenú: Cierres en Proceso -->
+    <menuitem id="menu_closing_worksheet_current"
+              name="Cierres en Proceso"
+              parent="menu_closing_worksheet"
+              action="action_closing_worksheet"
+              sequence="10"/>
+
+    <!-- Submenú: Cierres Completados -->
+    <menuitem id="menu_closing_worksheet_completed"
+              name="Cierres Completados"
+              parent="menu_closing_worksheet"
+              action="action_closing_worksheet_completed"
+              sequence="20"/>
+
+    <!-- Submenú: Todos los Cierres -->
+    <menuitem id="menu_closing_worksheet_all"
+              name="Todos los Cierres"
+              parent="menu_closing_worksheet"
+              action="action_closing_worksheet_all"
+              sequence="30"/>
+
+    <!-- Menú Crear Hoja de Cierre - Como submenú -->
+    <menuitem id="menu_closing_wizard"
+              name="Crear Nuevo Cierre"
+              parent="menu_closing_worksheet"
+              action="action_closing_wizard"
+              sequence="40"/>
+
+</odoo>
