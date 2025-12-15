@@ -1,5 +1,73 @@
 # -*- coding: utf-8 -*-
 
+"""
+Módulo para importación de saldos iniciales desde archivos CSV de AFIP.
+
+Estructura del CSV de Comprobantes AFIP (separado por ;):
+
+FORMATO COMPROBANTES RECIBIDOS - COMPRAS (30 columnas):
+Columna 1 (índice 0): Fecha de Emisión
+Columna 2 (índice 1): Tipo de Comprobante
+Columna 3 (índice 2): Punto de Venta
+Columna 4 (índice 3): Número Desde
+Columna 5 (índice 4): Número Hasta
+Columna 6 (índice 5): Cód. Autorización
+Columna 7 (índice 6): Tipo Doc. Emisor
+Columna 8 (índice 7): Nro. Doc. Emisor (CUIT del proveedor)
+Columna 9 (índice 8): Denominación Emisor (Nombre del proveedor)
+Columna 10 (índice 9): Tipo Doc. Receptor
+Columna 11 (índice 10): Nro. Doc. Receptor
+Columna 12 (índice 11): Tipo Cambio
+Columna 13 (índice 12): Moneda
+Columna 14 (índice 13): Imp. Neto Gravado IVA 0%
+Columna 15 (índice 14): IVA 2,5%
+Columna 16 (índice 15): Imp. Neto Gravado IVA 2,5%
+Columna 17 (índice 16): IVA 5%
+Columna 18 (índice 17): Imp. Neto Gravado IVA 5%
+Columna 19 (índice 18): IVA 10,5%
+Columna 20 (índice 19): Imp. Neto Gravado IVA 10,5%
+Columna 21 (índice 20): IVA 21%
+Columna 22 (índice 21): Imp. Neto Gravado IVA 21%
+Columna 23 (índice 22): IVA 27%
+Columna 24 (índice 23): Imp. Neto Gravado IVA 27%
+Columna 25 (índice 24): Imp. Neto Gravado Total *** MONTO NETO TOTAL ***
+Columna 26 (índice 25): Imp. Neto No Gravado
+Columna 27 (índice 26): Imp. Op. Exentas
+Columna 28 (índice 27): Otros Tributos
+Columna 29 (índice 28): Total IVA
+Columna 30 (índice 29): Imp. Total *** MONTO TOTAL CON IVA ***
+
+FORMATO COMPROBANTES EMITIDOS - VENTAS (28 columnas):
+Columna 1 (índice 0): Fecha de Emisión
+Columna 2 (índice 1): Tipo de Comprobante
+Columna 3 (índice 2): Punto de Venta
+Columna 4 (índice 3): Número Desde
+Columna 5 (índice 4): Número Hasta
+Columna 6 (índice 5): Cód. Autorización
+Columna 7 (índice 6): Tipo Doc. Receptor
+Columna 8 (índice 7): Nro. Doc. Receptor (CUIT del cliente)
+Columna 9 (índice 8): Denominación Receptor (Nombre del cliente)
+Columna 10 (índice 9): Tipo Cambio
+Columna 11 (índice 10): Moneda
+Columna 12 (índice 11): Imp. Neto Gravado IVA 0%
+Columna 13 (índice 12): IVA 2,5%
+Columna 14 (índice 13): Imp. Neto Gravado IVA 2,5%
+Columna 15 (índice 14): IVA 5%
+Columna 16 (índice 15): Imp. Neto Gravado IVA 5%
+Columna 17 (índice 16): IVA 10,5%
+Columna 18 (índice 17): Imp. Neto Gravado IVA 10,5%
+Columna 19 (índice 18): IVA 21%
+Columna 20 (índice 19): Imp. Neto Gravado IVA 21%
+Columna 21 (índice 20): IVA 27%
+Columna 22 (índice 21): Imp. Neto Gravado IVA 27%
+Columna 23 (índice 22): Imp. Neto Gravado Total *** MONTO NETO TOTAL ***
+Columna 24 (índice 23): Imp. Neto No Gravado
+Columna 25 (índice 24): Imp. Op. Exentas
+Columna 26 (índice 25): Otros Tributos
+Columna 27 (índice 26): Total IVA
+Columna 28 (índice 27): Imp. Total *** MONTO TOTAL CON IVA ***
+"""
+
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 import base64
@@ -34,6 +102,10 @@ class AccountIvaFile(models.Model):
     _description = "Importación de Saldos"
 
     name = fields.Char('Nombre', required=True, tracking=True)
+    company_id = fields.Many2one('res.company', string='Compañía', 
+                                default=lambda self: self.env.company, 
+                                required=True, tracking=True,
+                                help="Compañía a la que pertenece este archivo de importación")
     operation_type = fields.Selection([
         ('purchase', 'Compras'),
         ('sale', 'Ventas')
@@ -78,82 +150,32 @@ class AccountIvaFile(models.Model):
     analysis_report = fields.Html('Reporte de Análisis', readonly=True)
     
     # Campo para mensajes de debugging
-    debug_messages = fields.Text('Mensajes de Debug', readonly=True, default="📋 No hay facturas omitidas registradas")
+    debug_messages = fields.Html('Mensajes de Debug', readonly=True, default="<pre>No hay mensajes de debug aún...</pre>")
 
     def _add_debug_message(self, message):
-        """Agregar mensaje de debug a la solapa - SOLO FACTURAS RECHAZADAS Y RESUMEN"""
-        # FILTRO ESTRICTO: Solo permitir mensajes de errores de filas específicas y resúmenes
-        allowed_patterns = [
-            '❌ FILA',          # Errores específicos de filas
-            'RESUMEN DE IMPORTACIÓN',  # Resumen final
-            'PROCESAMIENTO EXITOSO'    # Mensaje de éxito
-        ]
-        
-        # Si el mensaje no contiene ningún patrón permitido, ignorarlo
-        if not any(pattern in message for pattern in allowed_patterns):
-            return
-        
+        """Agregar mensaje de debug a la solapa - Solo errores y advertencias"""
         try:
-            current_messages = self.debug_messages or ""
-            
-            # Limpiar mensaje por defecto si es la primera vez
-            if "No hay facturas omitidas registradas" in current_messages:
-                current_messages = ""
-            
-            # Formatear el mensaje en texto plano (sin HTML)
-            formatted_message = message
-            
-            # Actualizar mensajes
-            if current_messages:
-                self.debug_messages = current_messages + "\n" + formatted_message
-            else:
-                self.debug_messages = formatted_message
+            # Solo mostrar mensajes que contengan errores (❌) o advertencias (⚠️)
+            if '❌' in message or '⚠️' in message:
+                current_messages = self.debug_messages or "<pre>"
+                # Si es el primer mensaje real, limpiar el mensaje por defecto
+                if "No hay mensajes de debug aún..." in current_messages:
+                    current_messages = "<pre>"
+                
+                # Agregar timestamp
+                from datetime import datetime
+                timestamp = datetime.now().strftime("%H:%M:%S")
+                new_message = f"[{timestamp}] {message}\n"
+                
+                # Actualizar mensajes
+                updated_messages = current_messages + new_message + "</pre>"
+                self.debug_messages = updated_messages
         except Exception as e:
             pass  # No interrumpir el procesamiento por errores de logging
 
-    def _format_professional_message(self, message):
-        """Formatear mensaje con estilo profesional - ENFOCADO EN FACTURAS NO PROCESADAS"""
-        from datetime import datetime
-        timestamp = datetime.now().strftime("%H:%M:%S")
-        
-        # Detectar si es una tabla HTML (resumen)
-        if "RESUMEN DE FACTURAS NO PROCESADAS:" in message and "<div style=" in message:
-            # Es una tabla HTML, devolverla tal como está (ya viene formateada)
-            table_content = message.split("RESUMEN DE FACTURAS NO PROCESADAS:", 1)[1].strip()
-            return table_content
-        
-        # Determinar el tipo de mensaje y su color
-        if "❌ FILA" in message:
-            # Factura rechazada - formato especial
-            message_clean = message.replace("❌ FILA", "Fila").replace("❌", "")
-            return f"<div style='margin: 2px 0; padding: 8px 12px; background-color: #fef2f2; border-left: 4px solid #ef4444; border-radius: 4px;'><span style='color: #b91c1c; font-weight: 600; font-size: 13px;'>{message_clean.strip()}</span></div>"
-        elif "RESUMEN DE FACTURAS NO PROCESADAS" in message:
-            # Resumen final (versión texto - por compatibilidad)
-            message_lines = message.split('\n')
-            formatted_lines = []
-            for line in message_lines:
-                if line.strip():
-                    if "RESUMEN DE FACTURAS NO PROCESADAS" in line:
-                        formatted_lines.append(f"<div style='color: #dc2626; font-weight: bold; font-size: 14px; margin-bottom: 8px;'>📋 {line.strip()}</div>")
-                    elif line.startswith("Total omitidas:"):
-                        formatted_lines.append(f"<div style='color: #7f1d1d; font-weight: 600; margin: 4px 0;'>📊 {line.strip()}</div>")
-                    elif line.startswith("Detalle de motivos:"):
-                        formatted_lines.append(f"<div style='color: #991b1b; font-weight: 500; margin: 8px 0 4px 0;'>🔍 {line.strip()}</div>")
-                    elif line.startswith("•"):
-                        formatted_lines.append(f"<div style='color: #dc2626; margin: 2px 0 2px 16px; font-size: 12px;'>{line.strip()}</div>")
-            
-            return f"<div style='margin: 8px 0; padding: 12px; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 6px;'>{''.join(formatted_lines)}</div>"
-        elif "PROCESAMIENTO EXITOSO" in message:
-            # Mensaje de éxito
-            message_clean = message.replace("✅", "").strip()
-            return f"<div style='margin: 8px 0; padding: 12px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; text-align: center;'><span style='color: #059669; font-weight: 600; font-size: 14px;'>✅ {message_clean}</span></div>"
-        else:
-            # Otros mensajes (por si acaso)
-            return f"<div style='margin: 3px 0; padding: 6px 10px; background-color: #f8fafc; border-left: 3px solid #64748b; border-radius: 3px;'><span style='color: #64748b; font-size: 12px;'>[{timestamp}] {message.strip()}</span></div>"
-
     def _clear_debug_messages(self):
         """Limpiar mensajes de debug al iniciar un nuevo procesamiento"""
-        self.debug_messages = "📊 PROCESANDO IMPORTACIÓN - Generando resumen de resultados..."
+        self.debug_messages = "<pre>🚀 PROCESAMIENTO INICIADO - Solo se mostrarán errores y advertencias\n</pre>"
 
     @api.onchange('operation_type')
     def _onchange_operation_type(self):
@@ -246,16 +268,37 @@ class AccountIvaFile(models.Model):
                 
                 total_rows += 1
                 
-                # Verificar fila completa
-                if len(row) < 17:
+                # Verificar fila completa según tipo de operación
+                # Compras (comprobantes recibidos): 30 columnas
+                # Ventas (comprobantes emitidos): 28 columnas
+                expected_cols = 30 if self.operation_type == 'purchase' else 28
+                if len(row) < expected_cols:
                     filas_cortas += 1
                     continue
                 
                 try:
                     # Extraer datos básicos con limpieza mejorada
+                    # CUIT: columna 8 (índice 7) en ambos formatos
+                    # Denominación: columna 9 (índice 8) en ambos formatos
                     cuit = row[7].strip().replace('-', '').replace(' ', '') if row[7] else ''
-                    amount_str = row[16].strip().replace(' ', '') if row[16] else '0'
+                    partner_name = row[8].strip() if len(row) > 8 and row[8] else ''
                     doc_type_code = row[1].strip() if len(row) > 1 else ''
+                    
+                    # Montos según tipo de operación:
+                    # COMPRAS: Neto Total = índice 24 (col 25), Imp. Total = índice 29 (col 30)
+                    # VENTAS: Neto Total = índice 22 (col 23), Imp. Total = índice 27 (col 28)
+                    if self.operation_type == 'purchase':
+                        # Para tipo 11 (comprobantes de compra), usar total en lugar de neto
+                        if doc_type_code == '11':
+                            amount_str = row[29].strip().replace(' ', '') if len(row) > 29 and row[29] else '0'
+                        else:
+                            amount_str = row[24].strip().replace(' ', '') if len(row) > 24 and row[24] else '0'
+                    else:  # sale
+                        # Para tipo 11 (comprobantes de venta), usar total en lugar de neto
+                        if doc_type_code == '11':
+                            amount_str = row[27].strip().replace(' ', '') if len(row) > 27 and row[27] else '0'
+                        else:
+                            amount_str = row[22].strip().replace(' ', '') if len(row) > 22 and row[22] else '0'
                     
                     if not cuit or len(cuit) < 7:  # Menos estricto
                         cuits_invalidos += 1
@@ -303,19 +346,20 @@ class AccountIvaFile(models.Model):
                     else:
                         comprobantes_nuevos += 1
                     
-                    # Calcular totales según tipo de documento
-                    if doc_type_code in ['1', '2', '3', '51', '52', '53', '201']:  # Con IVA 21%
-                        neto = amount / 1.21
-                        iva = amount - neto
-                        total_neto += neto
-                        total_iva += iva
-                    elif doc_type_code in ['202', '203']:  # Con IVA 10.5%
-                        neto = amount / 1.105
-                        iva = amount - neto
-                        total_neto += neto
-                        total_iva += iva
-                    else:  # Sin IVA o exento
-                        total_neto += amount
+                    # Calcular totales según tipo de documento (validar amount > 0)
+                    if amount > 0:  # Solo procesar si amount es válido
+                        if doc_type_code in ['1', '2', '3', '51', '52', '53', '201']:  # Con IVA 21%
+                            neto = amount / 1.21
+                            iva = amount - neto
+                            total_neto += neto
+                            total_iva += iva
+                        elif doc_type_code in ['202', '203']:  # Con IVA 10.5%
+                            neto = amount / 1.105
+                            iva = amount - neto
+                            total_neto += neto
+                            total_iva += iva
+                        else:  # Sin IVA o exento
+                            total_neto += amount
                     
                     total_general += amount
                     
@@ -323,17 +367,18 @@ class AccountIvaFile(models.Model):
                     continue
             
             # Generar reporte detallado con información de debugging
+            success_percentage = (valid_rows/total_rows*100) if total_rows > 0 else 0
             analysis_message = f"""📊 ANÁLISIS DETALLADO DEL ARCHIVO:
 
 📋 RESUMEN GENERAL:
 • Total filas leídas: {total_rows}
 • Filas válidas procesables: {valid_rows}
 • Filas omitidas: {total_rows - valid_rows}
-• Porcentaje de éxito: {(valid_rows/total_rows*100):.1f}%
+• Porcentaje de éxito: {success_percentage:.1f}%
 
 🔍 DETALLES DE FILAS OMITIDAS:
-• Filas con menos de 17 columnas: {filas_cortas}
-• CUITs inválidos (menos de 8 dígitos): {cuits_invalidos}
+• Filas con menos de 30 columnas: {filas_cortas}
+• CUITs inválidos (menos de 7 dígitos): {cuits_invalidos}
 • Montos en cero: {montos_cero}
 
 💰 TOTALES FINANCIEROS:
@@ -344,10 +389,11 @@ class AccountIvaFile(models.Model):
 🔍 ESTADO DE COMPROBANTES:"""
 
             if self.import_type == 'new_documents':
+                duplicate_percentage = (duplicados_existentes/valid_rows*100) if valid_rows > 0 else 0
                 analysis_message += f"""
 • Comprobantes ya existentes: {duplicados_existentes}
 • Comprobantes nuevos detectados: {comprobantes_nuevos}
-• Ratio de duplicados: {(duplicados_existentes/valid_rows*100):.1f}%"""
+• Ratio de duplicados: {duplicate_percentage:.1f}%"""
             else:
                 analysis_message += f"""
 • Saldos iniciales a procesar: {comprobantes_nuevos}"""
@@ -363,17 +409,20 @@ class AccountIvaFile(models.Model):
 ✅ ARCHIVO LISTO PARA PROCESAR"""
 
             # Guardar datos del análisis en campos del modelo
+            success_percentage = (valid_rows/total_rows*100) if total_rows > 0 else 0
+            duplicate_percentage = (duplicados_existentes/valid_rows*100) if valid_rows > 0 else 0
+            
             self.write({
                 'analysis_total_rows': total_rows,
                 'analysis_valid_rows': valid_rows,
                 'analysis_omitted_rows': total_rows - valid_rows,
-                'analysis_success_percentage': (valid_rows/total_rows*100) if total_rows > 0 else 0,
+                'analysis_success_percentage': success_percentage,
                 'analysis_total_net': total_neto,
                 'analysis_total_tax': total_iva,
                 'analysis_total_amount': total_general,
                 'analysis_existing_documents': duplicados_existentes,
                 'analysis_new_documents': comprobantes_nuevos,
-                'analysis_duplicate_percentage': (duplicados_existentes/valid_rows*100) if valid_rows > 0 else 0,
+                'analysis_duplicate_percentage': duplicate_percentage,
                 'analysis_report': f'<pre>{analysis_message}</pre>',
                 'state': 'analyzed'
             })
@@ -413,10 +462,8 @@ class AccountIvaFile(models.Model):
                 'errores_creacion': 0
             }
             
-            # Lista para recopilar facturas rechazadas con detalles
-            facturas_rechazadas = []
-            
             # OPTIMIZACIÓN: Cache inteligente para partners y facturas existentes
+            # Inicializar cache para optimización (sin mensaje debug)
             partner_cache = {}  # {cuit: partner_record} - Solo partners necesarios
             duplicate_cache = {}  # {(partner_id, document_name): boolean}
             
@@ -436,17 +483,22 @@ class AccountIvaFile(models.Model):
                     if cuit and len(cuit) >= 7:
                         csv_cuits.add(cuit)
             
+            # Cargar partners existentes (sin mensaje debug de éxito)
+            
             # Pre-cargar SOLO los partners que necesitamos
             if csv_cuits:
                 existing_partners = self.env['res.partner'].search([('vat', 'in', list(csv_cuits))])
                 for partner in existing_partners:
                     if partner.vat:
                         partner_cache[partner.vat] = partner
+                # Cache cargado exitosamente (sin mensaje debug)
             else:
-                pass  # No hay CUITs válidos en el CSV
+                self._add_debug_message("⚠️ No se encontraron CUITs válidos en el CSV")
             
             # Pre-cargar facturas existentes si es necesario para detectar duplicados - OPTIMIZADO
             if self.import_type == 'new_documents':
+                # Pre-cargar facturas para detectar duplicados (sin mensaje debug de éxito)
+                
                 # OPTIMIZACIÓN: Solo cargar facturas de partners que están en el CSV
                 partner_ids_to_check = [p.id for p in partner_cache.values()]
                 
@@ -475,34 +527,63 @@ class AccountIvaFile(models.Model):
                         ('name', '!=', False),
                         ('partner_id', '!=', False)
                     ])
+                    
+                    # Cache de duplicados cargado (sin mensaje debug)
                 else:
-                    pass  # No hay partners existentes para verificar duplicados
+                    self._add_debug_message("⚠️ No hay partners existentes para verificar duplicados")
             
             # Procesar archivo
+            # Mensaje inicial más simple
+            self._add_debug_message(f"🚀 PROCESANDO: {self.operation_type} - {self.import_type} | Diario: {self.journal_id.name}")
+            
             for i, row in enumerate(csv_reader):
                 if i == 0:  # Saltar header
                     continue
                 
                 total_rows += 1
                 
-                # Verificar que la fila tenga suficientes columnas
-                if len(row) < 17:
+                # Solo mostrar progreso cada 100 filas para archivos grandes
+                if i % 100 == 0:
+                    self._add_debug_message(f"📊 Procesando fila {i}...")
+                
+                # Verificar que la fila tenga suficientes columnas según tipo de operación
+                # Compras (comprobantes recibidos): 30 columnas
+                # Ventas (comprobantes emitidos): 28 columnas
+                expected_cols = 30 if self.operation_type == 'purchase' else 28
+                if len(row) < expected_cols:
                     facturas_omitidas += 1
                     errores_detallados['filas_cortas'] += 1
-                    facturas_rechazadas.append(f"Fila {i}: Datos incompletos - Solo {len(row)} columnas de 17 requeridas")
+                    self._add_debug_message(f"❌ FILA {i}: Omitida por columnas insuficientes ({len(row)}<{expected_cols})")
                     continue
+                
+                # DEBUG: Confirmación de que pasó la validación de columnas - solo para problemas
                 
                 try:
                     # Extraer datos básicos con limpieza mejorada
+                    # CUIT y nombre están en mismo lugar en ambos formatos (índice 7 y 8)
                     cuit = row[7].strip().replace('-', '').replace(' ', '') if row[7] else ''
                     name = row[8].strip() if row[8] else 'Sin nombre'
-                    amount_str = row[16].strip().replace(' ', '') if row[16] else '0'
+                    doc_type_code = row[1].strip() if len(row) > 1 else ''
+                    
+                    # Montos según tipo de operación:
+                    # COMPRAS: Neto Total = índice 24 (col 25), Imp. Total = índice 29 (col 30)
+                    # VENTAS: Neto Total = índice 22 (col 23), Imp. Total = índice 27 (col 28)
+                    if self.operation_type == 'purchase':
+                        if doc_type_code == '11':
+                            amount_str = row[29].strip().replace(' ', '') if len(row) > 29 and row[29] else '0'
+                        else:
+                            amount_str = row[24].strip().replace(' ', '') if len(row) > 24 and row[24] else '0'
+                    else:  # sale
+                        if doc_type_code == '11':
+                            amount_str = row[27].strip().replace(' ', '') if len(row) > 27 and row[27] else '0'
+                        else:
+                            amount_str = row[22].strip().replace(' ', '') if len(row) > 22 and row[22] else '0'
                     
                     # Validar datos mínimos - CUIT menos estricto
                     if not cuit or len(cuit) < 7:  # Cambiar de 8 a 7 para ser menos estricto
                         facturas_omitidas += 1
                         errores_detallados['cuits_invalidos'] += 1
-                        facturas_rechazadas.append(f"Fila {i}: CUIT inválido '{cuit}' - Debe tener al menos 7 dígitos")
+                        self._add_debug_message(f"❌ FILA {i}: Omitida por CUIT inválido '{cuit}' (menos de 7 dígitos)")
                         continue
                     
                     # Convertir monto con mejor manejo de formatos
@@ -522,13 +603,13 @@ class AccountIvaFile(models.Model):
                     except:
                         facturas_omitidas += 1
                         errores_detallados['montos_cero'] += 1
-                        facturas_rechazadas.append(f"Fila {i}: Monto inválido '{amount_str}' - No se pudo convertir a número")
+                        self._add_debug_message(f"❌ FILA {i}: Omitida por monto inválido '{amount_str}'")
                         continue
                     
                     if amount == 0:
                         facturas_omitidas += 1
                         errores_detallados['montos_cero'] += 1
-                        facturas_rechazadas.append(f"Fila {i}: Monto en cero - Las facturas deben tener monto mayor a 0")
+                        self._add_debug_message(f"❌ FILA {i}: Omitida por monto en cero")
                         continue
                     
                     # Crear o buscar partner - OPTIMIZACIÓN INTELIGENTE
@@ -556,7 +637,10 @@ class AccountIvaFile(models.Model):
                     if not partner:
                         facturas_omitidas += 1
                         errores_detallados['partners_invalidos'] += 1
-                        facturas_rechazadas.append(f"Fila {i}: Error de proveedor - No se pudo crear/encontrar el proveedor para CUIT '{cuit}'")
+                        self._add_debug_message(f"❌ FILA {i}: Omitida por partner inválido para CUIT '{cuit}'")
+                        continue
+                        if i <= 20:  # Log primeros 20 partners inválidos
+                            self._add_debug_message(f"❌ Fila {i} partner inválido para CUIT: '{cuit}', nombre: '{name}'")
                         continue
                     
                     # Extraer datos del documento para duplicados
@@ -573,7 +657,7 @@ class AccountIvaFile(models.Model):
                             facturas_omitidas += 1
                             duplicados_omitidos += 1
                             errores_detallados['duplicados'] += 1
-                            facturas_rechazadas.append(f"Fila {i}: Factura duplicada - Ya existe factura {document_ref} para {partner.name}")
+                            self._add_debug_message(f"❌ FILA {i}: Omitida por duplicado - Partner: {partner.name}, Doc: {document_ref}")
                             continue
                     
                     # Crear factura - Ya verificamos duplicados arriba
@@ -584,94 +668,57 @@ class AccountIvaFile(models.Model):
                     else:
                         facturas_omitidas += 1
                         errores_detallados['errores_creacion'] += 1
-                        facturas_rechazadas.append(f"Fila {i}: Error al crear factura - {partner.name}, Monto: ${amount:,.2f}")
+                        self._add_debug_message(f"❌ FILA {i}: Error al crear factura - Partner: {partner.name}, Monto: {amount}")
                         
                 except Exception as e:
                     facturas_omitidas += 1
                     errores_detallados['errores_creacion'] += 1
-                    facturas_rechazadas.append(f"Fila {i}: Error de procesamiento - {type(e).__name__}: {str(e)[:100]}")
+                    self._add_debug_message(f"❌ FILA {i}: Error de procesamiento - {type(e).__name__}: {str(e)[:100]}")
                     continue
             
-            # TABLA RESUMEN PROFESIONAL
-            self._generate_summary_table(total_rows, facturas_creadas, facturas_omitidas, errores_detallados, facturas_rechazadas)
+            # Resumen detallado con información de debugging
+            total_partners_db = self.env['res.partner'].search_count([('vat', '!=', False)])
+            csv_partners_count = len(csv_cuits)
+            strategy_used = "CACHE OPTIMIZADO" if csv_partners_count < 1000 and total_partners_db > 5000 else "HÍBRIDO"
+            
+            summary_message = (f"Proceso completado:\n"
+                             f"• Total filas procesadas: {total_rows}\n"
+                             f"• Facturas creadas: {facturas_creadas}\n"
+                             f"• Facturas omitidas: {facturas_omitidas}\n"
+                             f"• Partners creados: {partners_creados}\n\n"
+                             f"OPTIMIZACIONES APLICADAS:\n"
+                             f"• Estrategia utilizada: {strategy_used}\n"
+                             f"• Partners únicos en CSV: {csv_partners_count}\n"
+                             f"• Partners totales en BD: {total_partners_db}\n"
+                             f"• Cache de partners: {len(partner_cache)} partners en memoria\n"
+                             f"• Cache de duplicados: {len(duplicate_cache)} documentos indexados\n"
+                             f"• Ahorro de memoria: {((total_partners_db - len(partner_cache)) / total_partners_db * 100):.1f}%\n\n"
+                             f"DETALLES DE ERRORES:\n"
+                             f"• Filas cortas (< 17 columnas): {errores_detallados['filas_cortas']}\n"
+                             f"• CUITs inválidos: {errores_detallados['cuits_invalidos']}\n"
+                             f"• Montos en cero: {errores_detallados['montos_cero']}\n"
+                             f"• Partners inválidos: {errores_detallados['partners_invalidos']}\n"
+                             f"• Duplicados: {errores_detallados['duplicados']}\n"
+                             f"• Errores de creación: {errores_detallados['errores_creacion']}")
+            
+            if duplicados_omitidos > 0:
+                summary_message += f"\n• Duplicados omitidos: {duplicados_omitidos}"
+            
+            self._add_debug_message(f"{summary_message}")
             
             self.state = 'done'
             
         except Exception as e:
             raise ValidationError(f'Error procesando archivo: {str(e)}')
 
-    def _generate_summary_table(self, total_rows, facturas_creadas, facturas_omitidas, errores_detallados, facturas_rechazadas):
-        """Generar resumen de texto plano similar al análisis con lista de rechazos"""
-        from datetime import datetime
-        
-        # Calcular porcentajes
-        porcentaje_exito = (facturas_creadas / total_rows * 100) if total_rows > 0 else 0
-        porcentaje_fallo = (facturas_omitidas / total_rows * 100) if total_rows > 0 else 0
-        
-        # Generar resumen de texto plano
-        if facturas_omitidas == 0:
-            # Caso exitoso
-            summary_message = f"""📊 RESUMEN DE IMPORTACIÓN:
-
-✅ PROCESAMIENTO COMPLETADO EXITOSAMENTE
-
-📋 RESUMEN GENERAL:
-• Total filas procesadas: {total_rows}
-• Comprobantes importados: {facturas_creadas}
-• Comprobantes no importados: {facturas_omitidas}
-• Porcentaje de éxito: {porcentaje_exito:.1f}%
-
-🎉 TODAS LAS FACTURAS FUERON IMPORTADAS CORRECTAMENTE"""
-
-        else:
-            # Caso con errores
-            summary_message = f"""📊 RESUMEN DE IMPORTACIÓN:
-
-📋 RESUMEN GENERAL:
-• Total filas procesadas: {total_rows}
-• Comprobantes importados: {facturas_creadas} ({porcentaje_exito:.1f}%)
-• Comprobantes no importados: {facturas_omitidas} ({porcentaje_fallo:.1f}%)
-
-❌ DETALLE DE COMPROBANTES NO IMPORTADOS:"""
-
-            # Agregar detalles de errores solo si existen
-            if errores_detallados.get('filas_cortas', 0) > 0:
-                summary_message += f"\n• Datos incompletos (menos de 17 columnas): {errores_detallados['filas_cortas']}"
-            
-            if errores_detallados.get('cuits_invalidos', 0) > 0:
-                summary_message += f"\n• CUIT/CUIL inválidos (menos de 7 dígitos): {errores_detallados['cuits_invalidos']}"
-            
-            if errores_detallados.get('montos_cero', 0) > 0:
-                summary_message += f"\n• Montos en cero o inválidos: {errores_detallados['montos_cero']}"
-            
-            if errores_detallados.get('partners_invalidos', 0) > 0:
-                summary_message += f"\n• Errores al crear/encontrar proveedores: {errores_detallados['partners_invalidos']}"
-            
-            if errores_detallados.get('duplicados', 0) > 0:
-                summary_message += f"\n• Facturas duplicadas (ya existen): {errores_detallados['duplicados']}"
-            
-            if errores_detallados.get('errores_creacion', 0) > 0:
-                summary_message += f"\n• Errores al crear las facturas: {errores_detallados['errores_creacion']}"
-            
-            # Agregar lista detallada de facturas rechazadas
-            if facturas_rechazadas:
-                summary_message += f"\n\n📋 LISTADO DE FACTURAS RECHAZADAS ({len(facturas_rechazadas)}):"
-                for i, rechazo in enumerate(facturas_rechazadas[:50], 1):  # Limitar a 50 para no sobrecargar
-                    summary_message += f"\n{i:2d}. {rechazo}"
-                
-                if len(facturas_rechazadas) > 50:
-                    summary_message += f"\n... y {len(facturas_rechazadas) - 50} facturas rechazadas más"
-            
-            summary_message += f"\n\n⚠️ REVISAR FACTURAS RECHAZADAS LISTADAS ARRIBA"
-        
-        # Enviar el resumen al sistema de debug
-        self._add_debug_message(f"RESUMEN DE IMPORTACIÓN:\n{summary_message}")
-
     def _get_or_create_partner(self, cuit, name, row):
         """Método seguro para obtener o crear partner sin duplicados"""
         try:
             # Buscar partner existente por CUIT/VAT de manera segura
-            existing_partners = self.env['res.partner'].search([('vat', '=', cuit)])
+            existing_partners = self.env['res.partner'].search([
+                ('vat', '=', cuit),
+                ('company_id', 'in', [self.company_id.id, False])
+            ])
             
             if existing_partners:
                 # Si hay varios, tomar el primero y marcar como existente
@@ -687,6 +734,7 @@ class AccountIvaFile(models.Model):
                 'vat': cuit,
                 'company_type': 'company',
                 'account_iva_file_id': self.id,
+                'company_id': self.company_id.id,
             }
             
             # Configurar identificación fiscal (CUIT)
@@ -744,7 +792,10 @@ class AccountIvaFile(models.Model):
             
         except Exception as e:
             # Si hay error, buscar cualquier partner existente con ese CUIT
-            fallback_partner = self.env['res.partner'].search([('vat', '=', cuit)], limit=1)
+            fallback_partner = self.env['res.partner'].search([
+                ('vat', '=', cuit),
+                ('company_id', 'in', [self.company_id.id, False])
+            ], limit=1)
             if fallback_partner:
                 return fallback_partner
             return None
@@ -777,8 +828,13 @@ class AccountIvaFile(models.Model):
             
             self._add_debug_message(f"🔧 DEBUG: move_type determinado = '{move_type}'")
             
-            # Obtener moneda
-            currency_code = row[10].strip() if len(row) > 10 else ''
+            # Obtener moneda según tipo de operación:
+            # COMPRAS: Moneda = índice 12 (col 13)
+            # VENTAS: Moneda = índice 10 (col 11)
+            if self.operation_type == 'purchase':
+                currency_code = row[12].strip() if len(row) > 12 else ''
+            else:  # sale
+                currency_code = row[10].strip() if len(row) > 10 else ''
             if currency_code == 'DOL':
                 currency = self.env['res.currency'].search([('name', '=', 'USD')], limit=1)
                 currency_id = currency.id if currency else self.env.company.currency_id.id
@@ -808,14 +864,15 @@ class AccountIvaFile(models.Model):
             self._add_debug_message(f"🔧 DEBUG: import_type='{self.import_type}', product_id='{self.product_id}'")
             
             if self.import_type == 'initial_balances':
-                # SALDOS INICIALES: Sin producto, sin impuestos
+                # SALDOS INICIALES: Detectar alícuota de IVA desde el CSV
+                tax_ids = self._detect_tax_from_csv_row(row, doc_type_code)
                 line_vals = {
                     'name': 'Saldo inicial',
                     'quantity': 1,
                     'price_unit': amount,
-                    'tax_ids': [(6, 0, [])],  # Lista vacía = SIN impuestos
+                    'tax_ids': [(6, 0, tax_ids)],
                 }
-                self._add_debug_message(f"🔧 DEBUG: Línea para saldos iniciales SIN impuestos")
+                self._add_debug_message(f"🔧 DEBUG: Línea para saldos iniciales con taxes detectados desde CSV: {tax_ids}")
             else:
                 # FACTURAS NUEVAS: Con producto y con impuestos
                 if self.product_id:
@@ -871,6 +928,7 @@ class AccountIvaFile(models.Model):
                 'account_iva_file_id': self.id,
                 'file_amount': amount,
                 'currency_id': currency_id,
+                'company_id': self.company_id.id,
                 'invoice_line_ids': [(0, 0, line_vals)],
             }
             
@@ -908,6 +966,123 @@ class AccountIvaFile(models.Model):
             self._add_debug_message(f"❌ ERROR GENERAL en _create_invoice_simple: {type(e).__name__}: {e}")
             return None
 
+    def _detect_tax_from_csv_row(self, row, doc_type_code):
+        """Detectar alícuota de IVA desde los datos del CSV"""
+        try:
+            tax_ids = []
+            
+            # Índices de columnas según tipo de operación:
+            # COMPRAS (30 cols): IVA 2.5%=14, IVA 5%=16, IVA 10.5%=18, IVA 21%=20, IVA 27%=22
+            # VENTAS (28 cols): IVA 2.5%=12, IVA 5%=14, IVA 10.5%=16, IVA 21%=18, IVA 27%=20
+            
+            def parse_amount(value):
+                """Convertir string a float manejando comas y puntos"""
+                try:
+                    if not value or value.strip() in ['', '0', '0,00', '0.00']:
+                        return 0.0
+                    cleaned = value.strip().replace(',', '.').replace(' ', '').replace('$', '')
+                    return float(cleaned)
+                except:
+                    return 0.0
+            
+            # Detectar qué alícuota tiene valor según tipo de operación
+            if self.operation_type == 'purchase':
+                iva_21_amount = parse_amount(row[20]) if len(row) > 20 else 0.0
+                iva_10_5_amount = parse_amount(row[18]) if len(row) > 18 else 0.0
+                iva_27_amount = parse_amount(row[22]) if len(row) > 22 else 0.0
+                iva_5_amount = parse_amount(row[16]) if len(row) > 16 else 0.0
+                iva_2_5_amount = parse_amount(row[14]) if len(row) > 14 else 0.0
+            else:  # sale
+                iva_21_amount = parse_amount(row[18]) if len(row) > 18 else 0.0
+                iva_10_5_amount = parse_amount(row[16]) if len(row) > 16 else 0.0
+                iva_27_amount = parse_amount(row[20]) if len(row) > 20 else 0.0
+                iva_5_amount = parse_amount(row[14]) if len(row) > 14 else 0.0
+                iva_2_5_amount = parse_amount(row[12]) if len(row) > 12 else 0.0
+            
+            self._add_debug_message(f"🔍 IVA detectado CSV: 21%={iva_21_amount}, 10.5%={iva_10_5_amount}, 27%={iva_27_amount}")
+            
+            # Buscar el impuesto correspondiente según la alícuota con valor mayor a 0
+            if iva_27_amount > 0:
+                tax = self._find_tax_by_amount(27)
+                if tax:
+                    tax_ids.append(tax.id)
+                    self._add_debug_message(f"✅ IVA 27% detectado y configurado")
+            
+            if iva_21_amount > 0:
+                tax = self._find_tax_by_amount(21)
+                if tax:
+                    tax_ids.append(tax.id)
+                    self._add_debug_message(f"✅ IVA 21% detectado y configurado")
+            
+            if iva_10_5_amount > 0:
+                tax = self._find_tax_by_amount(10.5)
+                if tax:
+                    tax_ids.append(tax.id)
+                    self._add_debug_message(f"✅ IVA 10.5% detectado y configurado")
+            
+            if iva_5_amount > 0:
+                tax = self._find_tax_by_amount(5)
+                if tax:
+                    tax_ids.append(tax.id)
+                    self._add_debug_message(f"✅ IVA 5% detectado y configurado")
+            
+            if iva_2_5_amount > 0:
+                tax = self._find_tax_by_amount(2.5)
+                if tax:
+                    tax_ids.append(tax.id)
+                    self._add_debug_message(f"✅ IVA 2.5% detectado y configurado")
+            
+            # Si no se detectó ningún IVA, verificar si es tipo 11 (IVA No Corresponde)
+            if not tax_ids and doc_type_code == '11':
+                if self.operation_type == 'purchase':
+                    tax = self.env['account.tax'].search([
+                        ('type_tax_use', '=', 'purchase'),
+                        ('company_id', '=', self.company_id.id),
+                        '|', '|', '|',
+                        ('name', 'ilike', 'IVA No Corresp'),
+                        ('name', 'ilike', 'IVA No Correspond'),
+                        ('name', 'ilike', 'No Correspond'),
+                        ('name', 'ilike', 'No Corresp')
+                    ], limit=1)
+                else:
+                    tax = self.env['account.tax'].search([
+                        ('type_tax_use', '=', 'sale'),
+                        ('company_id', '=', self.company_id.id),
+                        '|', '|', '|',
+                        ('name', 'ilike', 'IVA No Corresp'),
+                        ('name', 'ilike', 'IVA No Correspond'),
+                        ('name', 'ilike', 'No Correspond'),
+                        ('name', 'ilike', 'No Corresp')
+                    ], limit=1)
+                if tax:
+                    tax_ids.append(tax.id)
+                    self._add_debug_message(f"✅ IVA No Corresponde configurado para tipo 11")
+            
+            return tax_ids
+            
+        except Exception as e:
+            self._add_debug_message(f"❌ Error detectando IVA desde CSV: {e}")
+            return []
+    
+    def _find_tax_by_amount(self, amount):
+        """Buscar impuesto por porcentaje"""
+        try:
+            if self.operation_type == 'purchase':
+                tax = self.env['account.tax'].search([
+                    ('type_tax_use', '=', 'purchase'),
+                    ('amount', '=', amount),
+                    ('company_id', '=', self.company_id.id)
+                ], limit=1)
+            else:
+                tax = self.env['account.tax'].search([
+                    ('type_tax_use', '=', 'sale'),
+                    ('amount', '=', amount),
+                    ('company_id', '=', self.company_id.id)
+                ], limit=1)
+            return tax
+        except:
+            return None
+
     def _get_taxes_for_document(self, doc_type_code):
         """Obtener impuestos según el tipo de documento"""
         try:
@@ -923,8 +1098,11 @@ class AccountIvaFile(models.Model):
             iva_10_5_docs = ['201', '202', '203']  # Incluye nota de crédito MiPyme 203
             
             # Códigos de documentos que normalmente son exentos o sin IVA
-            # Facturas B (código 6), C (código 11), etc.
-            no_iva_docs = ['6', '11', '7', '12', '13']
+            # Facturas B (código 6), C (sin el 11), etc.
+            no_iva_docs = ['6', '7', '12', '13']
+            
+            # Código específico para IVA No Corresponde
+            iva_no_corresp_docs = ['11']
             
             if doc_type_code in iva_21_docs:
                 # Buscar IVA 21% para compras o ventas
@@ -932,13 +1110,13 @@ class AccountIvaFile(models.Model):
                     tax = self.env['account.tax'].search([
                         ('type_tax_use', '=', 'purchase'),
                         ('amount', '=', 21),
-                        ('company_id', '=', self.env.company.id)
+                        ('company_id', '=', self.company_id.id)
                     ], limit=1)
                 else:
                     tax = self.env['account.tax'].search([
                         ('type_tax_use', '=', 'sale'),
                         ('amount', '=', 21),
-                        ('company_id', '=', self.env.company.id)
+                        ('company_id', '=', self.company_id.id)
                     ], limit=1)
                 
                 if tax:
@@ -950,13 +1128,40 @@ class AccountIvaFile(models.Model):
                     tax = self.env['account.tax'].search([
                         ('type_tax_use', '=', 'purchase'),
                         ('amount', '=', 10.5),
-                        ('company_id', '=', self.env.company.id)
+                        ('company_id', '=', self.company_id.id)
                     ], limit=1)
                 else:
                     tax = self.env['account.tax'].search([
                         ('type_tax_use', '=', 'sale'),
                         ('amount', '=', 10.5),
-                        ('company_id', '=', self.env.company.id)
+                        ('company_id', '=', self.company_id.id)
+                    ], limit=1)
+                
+                if tax:
+                    tax_ids.append(tax.id)
+            
+            elif doc_type_code in iva_no_corresp_docs:
+                # Para tipo 11: Buscar IVA No Corresponde / IVA No Correspóndiente
+                if self.operation_type == 'purchase':
+                    # Buscar por diferentes variaciones del nombre
+                    tax = self.env['account.tax'].search([
+                        ('type_tax_use', '=', 'purchase'),
+                        ('company_id', '=', self.company_id.id),
+                        '|', '|', '|',
+                        ('name', 'ilike', 'IVA No Corresp'),
+                        ('name', 'ilike', 'IVA No Correspond'),
+                        ('name', 'ilike', 'No Correspond'),
+                        ('name', 'ilike', 'No Corresp')
+                    ], limit=1)
+                else:
+                    tax = self.env['account.tax'].search([
+                        ('type_tax_use', '=', 'sale'),
+                        ('company_id', '=', self.company_id.id),
+                        '|', '|', '|',
+                        ('name', 'ilike', 'IVA No Corresp'),
+                        ('name', 'ilike', 'IVA No Correspond'),
+                        ('name', 'ilike', 'No Correspond'),
+                        ('name', 'ilike', 'No Corresp')
                     ], limit=1)
                 
                 if tax:
@@ -968,13 +1173,13 @@ class AccountIvaFile(models.Model):
                     tax = self.env['account.tax'].search([
                         ('type_tax_use', '=', 'purchase'),
                         ('amount', '=', 0),
-                        ('company_id', '=', self.env.company.id)
+                        ('company_id', '=', self.company_id.id)
                     ], limit=1)
                 else:
                     tax = self.env['account.tax'].search([
                         ('type_tax_use', '=', 'sale'),
                         ('amount', '=', 0),
-                        ('company_id', '=', self.env.company.id)
+                        ('company_id', '=', self.company_id.id)
                     ], limit=1)
                 
                 if tax:
@@ -986,13 +1191,13 @@ class AccountIvaFile(models.Model):
                     tax = self.env['account.tax'].search([
                         ('type_tax_use', '=', 'purchase'),
                         ('amount', '=', 21),
-                        ('company_id', '=', self.env.company.id)
+                        ('company_id', '=', self.company_id.id)
                     ], limit=1)
                 else:
                     tax = self.env['account.tax'].search([
                         ('type_tax_use', '=', 'sale'),
                         ('amount', '=', 21),
-                        ('company_id', '=', self.env.company.id)
+                        ('company_id', '=', self.company_id.id)
                     ], limit=1)
                 
                 if tax:
@@ -1133,6 +1338,7 @@ class AccountIvaFile(models.Model):
                 'vat': cuit,
                 'company_type': 'company',
                 'account_iva_file_id': self.id,
+                'company_id': self.company_id.id,
             }
             
             # Configurar identificación fiscal (CUIT)
@@ -1194,7 +1400,10 @@ class AccountIvaFile(models.Model):
             
         except Exception as e:
             # Si hay error, buscar cualquier partner existente con ese CUIT
-            fallback_partner = self.env['res.partner'].search([('vat', '=', cuit)], limit=1)
+            fallback_partner = self.env['res.partner'].search([
+                ('vat', '=', cuit),
+                ('company_id', 'in', [self.company_id.id, False])
+            ], limit=1)
             if fallback_partner:
                 # Agregar al cache para futuras consultas
                 partner_cache[cuit] = fallback_partner
@@ -1240,7 +1449,10 @@ class AccountIvaFile(models.Model):
                 return partner
             
             # No está en cache, hacer consulta directa
-            existing_partners = self.env['res.partner'].search([('vat', '=', cuit)])
+            existing_partners = self.env['res.partner'].search([
+                ('vat', '=', cuit),
+                ('company_id', 'in', [self.company_id.id, False])
+            ])
             
             if existing_partners:
                 # Encontrado, agregar al cache para futuras consultas
@@ -1256,6 +1468,7 @@ class AccountIvaFile(models.Model):
                 'vat': cuit,
                 'company_type': 'company',
                 'account_iva_file_id': self.id,
+                'company_id': self.company_id.id,
             }
             
             # Configurar identificación fiscal (CUIT)
@@ -1317,7 +1530,10 @@ class AccountIvaFile(models.Model):
             
         except Exception as e:
             # Si hay error, buscar cualquier partner existente con ese CUIT
-            fallback_partner = self.env['res.partner'].search([('vat', '=', cuit)], limit=1)
+            fallback_partner = self.env['res.partner'].search([
+                ('vat', '=', cuit),
+                ('company_id', 'in', [self.company_id.id, False])
+            ], limit=1)
             if fallback_partner:
                 # Agregar al cache para futuras consultas
                 partner_cache[cuit] = fallback_partner
