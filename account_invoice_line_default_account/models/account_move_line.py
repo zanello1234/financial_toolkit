@@ -57,6 +57,12 @@ class AccountMoveLine(models.Model):
             ):
                 self.account_id = partner.property_account_income
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super().create(vals_list)
+        res._update_partner_income_expense_default_accounts()
+        return res
+
     def write(self, vals):
         res = super().write(vals)
         self._update_partner_income_expense_default_accounts()
@@ -120,3 +126,11 @@ class AccountMoveLine(models.Model):
                     move.partner_id.write(
                         {"property_account_income": line_to_update.account_id.id}
                     )
+
+class AccountMove(models.Model):
+    _inherit = "account.move"
+
+    def action_post(self):
+        res = super().action_post()
+        self.invoice_line_ids._update_partner_income_expense_default_accounts()
+        return res

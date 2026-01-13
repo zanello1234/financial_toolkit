@@ -12,7 +12,7 @@ class ResPartner(models.Model):
     property_account_income = fields.Many2one(
         "account.account",
         string="Default Income Account",
-        domain="[('account_type', '=', 'income')]",
+        domain="[('account_type', 'in', ('income', 'income_other'))]",
         help="Default counterpart account for sales on invoice lines",
         company_dependent=True,
     )
@@ -25,7 +25,7 @@ class ResPartner(models.Model):
     property_account_expense = fields.Many2one(
         "account.account",
         string="Default Expense Account",
-        domain="[('account_type', '=', 'expense')]",
+        domain="[('account_type', 'in', ('expense', 'expense_depreciation', 'expense_direct_cost'))]",
         help="Default counterpart account for purchases on invoice lines",
         company_dependent=True,
     )
