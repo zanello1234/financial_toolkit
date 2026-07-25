@@ -48,7 +48,7 @@ Professional solution for comprehensive credit card payment processing, automate
 
 Transform your credit card management today with this professional-grade solution!
     """,
-    'version': '19.0.1.0.38',
+    'version': '19.0.1.0.39',
     "category": "Accounting/Payment",
     "website": "www.onlyone.odoo.com",
     "author": "Only One by Martin Zanello",

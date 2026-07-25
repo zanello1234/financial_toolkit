@@ -2,12 +2,13 @@
 <odoo>
     <data>
 
-        <!-- Main Credit Card Management Menu (Independent under Accounting) -->
-        <record id="menu_credit_card_main" model="ir.ui.menu">
-            <field name="name">Credit Cards</field>
-            <field name="parent_id" eval="153"/>
-            <field name="sequence">95</field>
-        </record>
+        <!-- Menú principal, colgado de Contabilidad. OJO: nunca por id
+             numérico de base (eval="153" terminaba en Data Cleaning en
+             cualquier base que no fuera la de desarrollo). -->
+        <menuitem id="menu_credit_card_main"
+                  name="Credit Cards"
+                  parent="account.menu_finance"
+                  sequence="95"/>
 
         <!-- Accreditations Submenu -->
         <menuitem id="menu_card_accreditation"
