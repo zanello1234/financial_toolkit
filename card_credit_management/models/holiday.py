@@ -45,9 +45,7 @@ class Holiday(models.Model):
             if existing:
                 raise ValidationError(_('A holiday already exists for this date: %s') % record.date)
 
-    def name_get(self):
-        result = []
+    def _compute_display_name(self):
+        # Odoo 19: name_get() fue eliminado; el nombre visible se computa acá.
         for record in self:
-            name = f"{record.name} ({record.date})"
-            result.append((record.id, name))
-        return result
+            record.display_name = f"{record.name} ({record.date})"

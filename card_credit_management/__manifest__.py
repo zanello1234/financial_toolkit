@@ -39,7 +39,7 @@ Professional solution for comprehensive credit card payment processing, automate
 
 🔧 Technical Excellence:
 ========================
-• Built on Odoo 18.0 framework
+• Built on Odoo 19.0 framework
 • Clean, maintainable code architecture
 • Comprehensive test coverage
 • Multi-company support
@@ -48,7 +48,7 @@ Professional solution for comprehensive credit card payment processing, automate
 
 Transform your credit card management today with this professional-grade solution!
     """,
-    'version': '18.0.1.0.37',
+    'version': '19.0.1.0.38',
     "category": "Accounting/Payment",
     "website": "www.onlyone.odoo.com",
     "author": "Only One by Martin Zanello",

@@ -196,7 +196,7 @@ class CardBatchTransfer(models.Model):
                 transfer.write({'state': 'reconciled'})
             elif not transfer.is_payment_paid and transfer.state == 'reconciled':
                 # Only revert if payment is cancelled or draft, not if it's just not posted yet
-                if transfer.inbound_payment_id and transfer.inbound_payment_id.state in ('cancel', 'draft'):
+                if transfer.inbound_payment_id and transfer.inbound_payment_id.state in ('canceled', 'draft'):
                     # Use write to trigger accreditation updates
                     transfer.write({'state': 'transferred'})
 
@@ -379,10 +379,10 @@ class CardBatchTransfer(models.Model):
                 raise UserError("Cannot cancel a transfer that has already been executed or reconciled.")
             
             # Cancel related payments if they exist
-            if transfer.outbound_payment_id and transfer.outbound_payment_id.state not in ('cancel', 'reconciled'):
+            if transfer.outbound_payment_id and transfer.outbound_payment_id.state not in ('canceled', 'paid'):
                 transfer.outbound_payment_id.action_cancel()
             
-            if transfer.inbound_payment_id and transfer.inbound_payment_id.state not in ('cancel', 'reconciled'):
+            if transfer.inbound_payment_id and transfer.inbound_payment_id.state not in ('canceled', 'paid'):
                 transfer.inbound_payment_id.action_cancel()
             
             transfer.state = 'cancelled'

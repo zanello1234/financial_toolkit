@@ -158,7 +158,7 @@ class AccountPayment(models.Model):
                 continue
                 
             # Skip validation if payment is in a specific state that indicates it's from account_payment_pro
-            if payment.state in ('posted', 'sent', 'reconciled'):
+            if payment.state in ('in_process', 'paid'):  # ya confirmado por el circuito de pagos
                 continue
                 
             if payment.journal_id and payment.journal_id.is_credit_card:
@@ -251,7 +251,7 @@ class AccountPayment(models.Model):
             for payment in self:
                 # Handle internal transfer payments
                 if payment.is_internal_transfer and payment.payment_type == 'inbound':
-                    if (payment.is_reconciled and payment.state in ('posted', 'paid')) or payment.state in ('posted', 'paid'):
+                    if payment.state in ('in_process', 'paid'):
                         payment._update_batch_transfer_reconciliation_status(reconciled=True)
                     elif not payment.is_reconciled:
                         payment._update_batch_transfer_reconciliation_status(reconciled=False)
@@ -259,9 +259,9 @@ class AccountPayment(models.Model):
                 # Handle regular inbound payments that may be related to batch transfers
                 elif (payment.payment_type == 'inbound' and 
                       not payment.is_internal_transfer):
-                    if payment.state in ('posted', 'paid'):  # When payment is posted/paid, mark batch as reconciled
+                    if payment.state in ('in_process', 'paid'):  # confirmado: el lote queda conciliado
                         payment._update_batch_transfer_from_payment_reconciliation(reconciled=True)
-                    elif payment.state in ('cancel', 'draft'):
+                    elif payment.state in ('canceled', 'draft'):
                         payment._update_batch_transfer_from_payment_reconciliation(reconciled=False)
                 
                 # Handle batch transfers where this payment is the inbound_payment_id
@@ -324,8 +324,8 @@ class AccountPayment(models.Model):
                 # Check if all inbound payments are posted/paid
                 inbound_payments = all_payments.filtered(lambda p: p.payment_type == 'inbound')
                 
-                if inbound_payments and all(p.state in ('posted', 'paid') for p in inbound_payments):
-                    # All inbound payments are posted/paid, mark batch as reconciled
+                if inbound_payments and all(p.state in ('in_process', 'paid') for p in inbound_payments):
+                    # All inbound payments are confirmed/paid, mark batch as reconciled
                     if batch_transfer.state == 'transferred':
                         batch_transfer.state = 'reconciled'
             else:
@@ -373,7 +373,7 @@ class AccountPayment(models.Model):
                     body=f"Batch transfer automatically updated to 'transferred' because inbound payment {self.name} was unreconciled (state: {self.state})",
                     message_type='notification'
                 )
-            elif (self.state == 'posted' and self.is_reconciled and 
+            elif (self.state == 'paid' and
                   batch_transfer.state == 'transferred'):
                 # Payment is fully reconciled, batch should go to reconciled
                 batch_transfer.state = 'reconciled'

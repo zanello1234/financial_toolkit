@@ -147,9 +147,7 @@ class CardPlan(models.Model):
         
         return current_date
 
-    def name_get(self):
-        result = []
+    def _compute_display_name(self):
+        # Odoo 19: name_get() fue eliminado; el nombre visible se computa acá.
         for record in self:
-            name = f"{record.journal_id.name} - {record.name}"
-            result.append((record.id, name))
-        return result
+            record.display_name = f"{record.journal_id.name} - {record.name}"
