@@ -9,7 +9,8 @@
             <field name="invoice_policy">order</field>
             <field name="sale_ok">True</field>
             <field name="purchase_ok">False</field>
-            <field name="categ_id" ref="product.product_category_all"/>
+            <!-- Odoo 19: product_category_all no existe más; es un servicio -->
+            <field name="categ_id" ref="product.product_category_services"/>
             <field name="list_price">0.0</field>
             <field name="standard_price">0.0</field>
             <field name="default_code">CARD_SURCHARGE</field>
