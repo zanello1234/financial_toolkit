@@ -261,7 +261,7 @@
                             domain="[('estimated_accreditation_date', '&lt;', context_today()), 
                                      ('state', '=', 'pending')]"/>
                     
-                    <group expand="0" string="Group By">
+                    <group name="group_by">
                         <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
                         <filter string="Journal" name="group_journal" context="{'group_by': 'journal_id'}"/>
                         <filter string="Card Plan" name="group_plan" context="{'group_by': 'card_plan_id'}"/>

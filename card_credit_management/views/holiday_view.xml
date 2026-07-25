@@ -69,7 +69,7 @@
                     <filter name="current_year" string="Current Year" 
                             domain="[('date', '&gt;=', context_today().replace(month=1, day=1)), 
                                      ('date', '&lt;=', context_today().replace(month=12, day=31))]"/>
-                    <group expand="0" string="Group By">
+                    <group name="group_by">
                         <filter string="Month" name="group_month" context="{'group_by': 'date:month'}"/>
                         <filter string="Year" name="group_year" context="{'group_by': 'date:year'}"/>
                     </group>

@@ -91,7 +91,7 @@
                     <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
                     <filter name="confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
                     <filter name="posted" string="Posted" domain="[('state', '=', 'posted')]"/>
-                    <group expand="0" string="Group By">
+                    <group name="group_by">
                         <filter name="group_by_accreditation" string="Accreditation" context="{'group_by': 'accreditation_id'}"/>
                         <filter name="group_by_tax_account" string="Tax Account" context="{'group_by': 'tax_account_id'}"/>
                         <filter name="group_by_state" string="State" context="{'group_by': 'state'}"/>
